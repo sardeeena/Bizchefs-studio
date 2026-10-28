@@ -1,4 +1,4 @@
-export type UserRole = 'super_admin' | 'admin' | 'client_owner' | 'client_member';
+export type UserRole = 'superadmin' | 'admin' | 'tech' | 'owner';
 
 export interface User {
   id: string;
@@ -6,7 +6,8 @@ export interface User {
   name: string;
   role: UserRole;
   avatarUrl?: string;
-  clientId?: string; // If not admin, the client organization they belong to
+  clientId?: string; // If owner, the client organization they belong to
+  assignedClientIds?: string[]; // If admin or tech, the client workspaces they are assigned to
   title?: string;
   createdAt: string;
 }
@@ -213,6 +214,19 @@ export interface NotificationItem {
   read: boolean;
   createdAt: string;
   link?: string;
+}
+
+export interface TaskItem {
+  id: string;
+  projectId?: string;
+  clientId: string;
+  title: string;
+  description?: string;
+  status: 'todo' | 'in_progress' | 'completed';
+  priority: 'low' | 'medium' | 'high' | 'urgent';
+  assigneeName?: string;
+  dueDate?: string;
+  createdAt: string;
 }
 
 export interface ProjectMilestone {

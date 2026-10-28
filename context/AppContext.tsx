@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 import {
   User,
   Client,
@@ -10,6 +10,7 @@ import {
   Deployment,
   SupportTicket,
   NotificationItem,
+  UserRole,
 } from '@/types';
 import {
   DEMO_USERS,
@@ -21,14 +22,16 @@ import {
   DEMO_TICKETS,
   DEMO_NOTIFICATIONS,
 } from '@/lib/data/mock-db';
+import { canAccessWorkspace, canModifyUserRole } from '@/lib/auth/authorize';
 
 interface AppContextType {
   currentUser: User;
   setCurrentUser: (user: User) => void;
   availableUsers: User[];
-  currentClient: Client | null;
+  currentClient: Client;
   setCurrentClient: (client: Client) => void;
   allClients: Client[];
+  accessibleClients: Client[];
   clientWebsites: Website[];
   clientDomains: DomainRecord[];
   clientHosting: HostingService[];
@@ -41,78 +44,97 @@ interface AppContextType {
   isDemoMode: boolean;
   addTicket: (ticket: Omit<SupportTicket, 'id' | 'createdAt' | 'updatedAt'>) => void;
   triggerDeployment: (websiteId: string, commitMessage: string) => Promise<void>;
+  updateUserRole: (targetUserId: string, newRole: UserRole) => { success: boolean; error?: string };
+  toggleTaskStatus: (taskId: string) => { success: boolean; error?: string };
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
+  const [users, setUsers] = useState<User[]>(DEMO_USERS);
+
   const [currentUser, setCurrentUserState] = useState<User>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('bizchefs_current_user_id');
       const found = DEMO_USERS.find((u) => u.id === saved);
       if (found) return found;
     }
-    return DEMO_USERS[0]; // Sarah Mitchell by default
+    return DEMO_USERS[0]; // Tariq (superadmin) by default
   });
 
-  const [currentClientId, setCurrentClientId] = useState<string>(
-    currentUser.clientId || DEMO_CLIENTS[0].id
-  );
+  const [currentClientId, setCurrentClientId] = useState<string>(() => {
+    if (currentUser.clientId) return currentUser.clientId;
+    if (currentUser.assignedClientIds && currentUser.assignedClientIds.length > 0) {
+      return currentUser.assignedClientIds[0];
+    }
+    return DEMO_CLIENTS[0].id;
+  });
 
   const [tickets, setTickets] = useState<SupportTicket[]>(DEMO_TICKETS);
   const [notifications, setNotifications] = useState<NotificationItem[]>(DEMO_NOTIFICATIONS);
   const [deployments, setDeployments] = useState<Deployment[]>(DEMO_DEPLOYMENTS);
   const [searchQuery, setSearchQuery] = useState('');
 
-
   const setCurrentUser = (user: User) => {
-    setCurrentUserState(user);
+    // Refresh user from current users state if available
+    const freshUser = users.find((u) => u.id === user.id) || user;
+    setCurrentUserState(freshUser);
     if (typeof window !== 'undefined') {
-      localStorage.setItem('bizchefs_current_user_id', user.id);
+      localStorage.setItem('bizchefs_current_user_id', freshUser.id);
     }
-    if (user.clientId) {
-      setCurrentClientId(user.clientId);
+    if (freshUser.clientId) {
+      setCurrentClientId(freshUser.clientId);
+    } else if (freshUser.assignedClientIds && freshUser.assignedClientIds.length > 0) {
+      if (!freshUser.assignedClientIds.includes(currentClientId)) {
+        setCurrentClientId(freshUser.assignedClientIds[0]);
+      }
     }
   };
 
+  // Filter clients accessible to the current user
+  const accessibleClients = DEMO_CLIENTS.filter((c) =>
+    canAccessWorkspace(currentUser, c.id)
+  );
+
+  // Active client selection ensuring user has workspace clearance
   const currentClient =
-    DEMO_CLIENTS.find((c) => c.id === currentClientId) ||
-    DEMO_CLIENTS.find((c) => c.id === currentUser.clientId) ||
+    (currentUser.role === 'owner'
+      ? DEMO_CLIENTS.find((c) => c.id === currentUser.clientId)
+      : accessibleClients.find((c) => c.id === currentClientId)) ||
+    accessibleClients[0] ||
     DEMO_CLIENTS[0];
 
   const setCurrentClient = (client: Client) => {
-    setCurrentClientId(client.id);
+    if (canAccessWorkspace(currentUser, client.id)) {
+      setCurrentClientId(client.id);
+    }
   };
 
-  // Filter tenant resources based on user role and selected client
-  const clientWebsites =
-    currentUser.role === 'super_admin' || currentUser.role === 'admin'
-      ? DEMO_WEBSITES.filter((w) => w.clientId === currentClient.id)
-      : DEMO_WEBSITES.filter((w) => w.clientId === currentUser.clientId);
+  // Filter tenant resources strictly based on workspace scoping
+  const clientWebsites = DEMO_WEBSITES.filter(
+    (w) => w.clientId === currentClient.id && canAccessWorkspace(currentUser, w.clientId)
+  );
 
-  const clientDomains =
-    currentUser.role === 'super_admin' || currentUser.role === 'admin'
-      ? DEMO_DOMAINS.filter((d) => d.clientId === currentClient.id)
-      : DEMO_DOMAINS.filter((d) => d.clientId === currentUser.clientId);
+  const clientDomains = DEMO_DOMAINS.filter(
+    (d) => d.clientId === currentClient.id && canAccessWorkspace(currentUser, d.clientId)
+  );
 
-  const clientHosting =
-    currentUser.role === 'super_admin' || currentUser.role === 'admin'
-      ? DEMO_HOSTING_SERVICES.filter((h) => h.clientId === currentClient.id)
-      : DEMO_HOSTING_SERVICES.filter((h) => h.clientId === currentUser.clientId);
+  const clientHosting = DEMO_HOSTING_SERVICES.filter(
+    (h) => h.clientId === currentClient.id && canAccessWorkspace(currentUser, h.clientId)
+  );
 
   const clientDeployments = deployments.filter((d) => {
     const website = DEMO_WEBSITES.find((w) => w.id === d.websiteId);
     if (!website) return false;
-    return currentUser.role === 'super_admin' || currentUser.role === 'admin'
-      ? website.clientId === currentClient.id
-      : website.clientId === currentUser.clientId;
+    return (
+      website.clientId === currentClient.id &&
+      canAccessWorkspace(currentUser, website.clientId)
+    );
   });
 
-  const clientTickets = tickets.filter((t) => {
-    return currentUser.role === 'super_admin' || currentUser.role === 'admin'
-      ? t.clientId === currentClient.id
-      : t.clientId === currentUser.clientId;
-  });
+  const clientTickets = tickets.filter(
+    (t) => t.clientId === currentClient.id && canAccessWorkspace(currentUser, t.clientId)
+  );
 
   const markNotificationRead = (id: string) => {
     setNotifications((prev) =>
@@ -132,6 +154,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   const triggerDeployment = async (websiteId: string, commitMessage: string) => {
+    // Only tech, admin, superadmin can trigger deployments
+    if (currentUser.role === 'owner') {
+      throw new Error('FORBIDDEN: Owners have read-only access to deployments');
+    }
+
     const targetWebsite = DEMO_WEBSITES.find((w) => w.id === websiteId);
     if (!targetWebsite) return;
 
@@ -156,7 +183,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
     setDeployments((prev) => [newDep, ...prev]);
 
-    // Simulate build completion after 2 seconds
     setTimeout(() => {
       setDeployments((prev) =>
         prev.map((d) =>
@@ -190,7 +216,45 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         },
         ...prev,
       ]);
-    }, 2500);
+    }, 2000);
+  };
+
+  const updateUserRole = (
+    targetUserId: string,
+    newRole: UserRole
+  ): { success: boolean; error?: string } => {
+    const target = users.find((u) => u.id === targetUserId);
+    if (!target) {
+      return { success: false, error: 'Target user not found' };
+    }
+
+    const check = canModifyUserRole(currentUser, target, newRole, users);
+    if (!check.allowed) {
+      return { success: false, error: check.reason || 'Permission denied' };
+    }
+
+    setUsers((prev) =>
+      prev.map((u) => (u.id === targetUserId ? { ...u, role: newRole } : u))
+    );
+
+    // If current user modified themselves
+    if (currentUser.id === targetUserId) {
+      setCurrentUserState((prev) => ({ ...prev, role: newRole }));
+    }
+
+    return { success: true };
+  };
+
+  const toggleTaskStatus = (taskId: string): { success: boolean; error?: string } => {
+    // Owner cannot edit tasks (read-only)
+    if (currentUser.role === 'owner') {
+      return {
+        success: false,
+        error: 'FORBIDDEN: Client owners have read-only access to roadmap tasks.',
+      };
+    }
+    // Tech, Admin, Superadmin can toggle
+    return { success: true };
   };
 
   return (
@@ -198,10 +262,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       value={{
         currentUser,
         setCurrentUser,
-        availableUsers: DEMO_USERS,
+        availableUsers: users,
         currentClient,
         setCurrentClient,
         allClients: DEMO_CLIENTS,
+        accessibleClients,
         clientWebsites,
         clientDomains,
         clientHosting,
@@ -214,6 +279,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         isDemoMode: true,
         addTicket,
         triggerDeployment,
+        updateUserRole,
+        toggleTaskStatus,
       }}
     >
       {children}

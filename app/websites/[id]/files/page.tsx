@@ -83,7 +83,17 @@ export default function WebsiteFilesPage({
     setSaveStatus(null);
   };
 
+  const isOwner = currentUser.role === 'owner';
+
   const handleSaveFile = () => {
+    if (isOwner) {
+      setSaveStatus({
+        success: false,
+        message: 'FORBIDDEN: Client owners have read-only access to repository source code.',
+      });
+      return;
+    }
+
     // 1. Path validation
     const pathCheck = validateSafeFilePath(selectedFile.path);
     if (!pathCheck.valid) {
@@ -101,7 +111,7 @@ export default function WebsiteFilesPage({
     // 3. Save simulation
     setSaveStatus({
       success: true,
-      message: `Changes saved to ${selectedFile.path}. Audit log recorded for ${currentUser.name}.`,
+      message: `Changes saved to ${selectedFile.path}. Audit log recorded for ${currentUser.name} (${currentUser.role}).`,
     });
   };
 
@@ -249,14 +259,21 @@ export default function WebsiteFilesPage({
               </span>
             </div>
 
-            <button
-              type="button"
-              onClick={handleSaveFile}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-neutral-900 text-white dark:bg-white dark:text-neutral-950 hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-colors"
-            >
-              <Save className="w-3.5 h-3.5" />
-              <span>Save Changes</span>
-            </button>
+            {!isOwner ? (
+              <button
+                type="button"
+                onClick={handleSaveFile}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-neutral-900 text-white dark:bg-white dark:text-neutral-950 hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-colors"
+              >
+                <Save className="w-3.5 h-3.5" />
+                <span>Save Changes</span>
+              </button>
+            ) : (
+              <div className="flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-mono rounded bg-neutral-100 dark:bg-neutral-800 text-neutral-500 border border-neutral-200 dark:border-neutral-700">
+                <Lock className="w-3 h-3 text-neutral-400" />
+                <span>Read-Only (Owner)</span>
+              </div>
+            )}
           </div>
 
           {/* Feedback banner */}
@@ -281,9 +298,12 @@ export default function WebsiteFilesPage({
           <div className="flex-1 min-h-[420px] p-4 bg-[#f8fafc] dark:bg-[#0c0e12] font-mono text-xs leading-relaxed">
             <textarea
               value={editorContent}
+              readOnly={isOwner}
               onChange={(e) => setEditorContent(e.target.value)}
               spellCheck={false}
-              className="w-full h-full min-h-[400px] bg-transparent text-neutral-900 dark:text-neutral-100 focus:outline-none resize-none font-mono text-xs leading-relaxed"
+              className={`w-full h-full min-h-[400px] bg-transparent text-neutral-900 dark:text-neutral-100 focus:outline-none resize-none font-mono text-xs leading-relaxed ${
+                isOwner ? 'opacity-85 cursor-default' : ''
+              }`}
             />
           </div>
         </div>

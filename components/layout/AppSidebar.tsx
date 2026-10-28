@@ -19,6 +19,7 @@ import {
   ExternalLink,
   Sparkles,
 } from 'lucide-react';
+import { ROLE_DEFINITIONS } from '@/lib/auth/roles';
 
 interface AppSidebarProps {
   onCloseMobile?: () => void;
@@ -26,7 +27,18 @@ interface AppSidebarProps {
 
 export function AppSidebar({ onCloseMobile }: AppSidebarProps) {
   const pathname = usePathname();
-  const { currentUser, setCurrentUser, availableUsers, currentClient, setCurrentClient, allClients } = useApp();
+  const {
+    currentUser,
+    setCurrentUser,
+    availableUsers,
+    currentClient,
+    setCurrentClient,
+    accessibleClients,
+  } = useApp();
+
+  const isSuperadmin = currentUser.role === 'superadmin';
+  const isAdmin = currentUser.role === 'admin';
+  const isStaff = isSuperadmin || isAdmin;
 
   const navItems = [
     { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -36,10 +48,25 @@ export function AppSidebar({ onCloseMobile }: AppSidebarProps) {
     { label: 'Projects', href: '/projects', icon: FolderKanban },
     { label: 'Support & Tickets', href: '/support', icon: LifeBuoy },
     { label: 'Account & Security', href: '/account', icon: UserCircle },
-    { label: 'Admin Center', href: '/admin', icon: ShieldCheck, adminOnly: true },
+    // Only superadmin and admin can access Admin Center
+    ...(isStaff
+      ? [{ label: 'Admin Center', href: '/admin', icon: ShieldCheck, adminOnly: true }]
+      : []),
   ];
 
-  const isAdmin = currentUser.role === 'super_admin' || currentUser.role === 'admin';
+  const getRoleBadgeStyle = (role: string) => {
+    switch (role) {
+      case 'superadmin':
+        return 'bg-amber-500/10 text-amber-600 dark:text-[#D39E36] border-amber-500/20';
+      case 'admin':
+        return 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20';
+      case 'tech':
+        return 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20';
+      case 'owner':
+      default:
+        return 'bg-neutral-500/10 text-neutral-600 dark:text-neutral-400 border-neutral-500/20';
+    }
+  };
 
   return (
     <aside className="w-64 shrink-0 flex flex-col h-full bg-white dark:bg-[#0c0e12] border-r border-neutral-200 dark:border-neutral-800/80 transition-colors select-none">
@@ -97,24 +124,34 @@ export function AppSidebar({ onCloseMobile }: AppSidebarProps) {
             <Building2 className="w-3 h-3 text-neutral-400" />
             Client Account
           </span>
+          {isSuperadmin && (
+            <span className="text-[10px] text-amber-600 dark:text-[#D39E36] font-semibold">
+              Global Scope
+            </span>
+          )}
           {isAdmin && (
-            <span className="text-[10px] text-amber-600 dark:text-[#D39E36] font-medium">
-              Admin Scope
+            <span className="text-[10px] text-blue-600 dark:text-blue-400 font-semibold">
+              Assigned Scope
+            </span>
+          )}
+          {currentUser.role === 'tech' && (
+            <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">
+              Tech Scope
             </span>
           )}
         </div>
 
-        {isAdmin ? (
+        {accessibleClients.length > 1 ? (
           <div className="relative">
             <select
               value={currentClient?.id}
               onChange={(e) => {
-                const found = allClients.find((c) => c.id === e.target.value);
+                const found = accessibleClients.find((c) => c.id === e.target.value);
                 if (found) setCurrentClient(found);
               }}
               className="w-full text-xs font-semibold bg-white dark:bg-[#151921] border border-neutral-200 dark:border-neutral-700 rounded-lg py-1.5 pl-2.5 pr-7 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-1 focus:ring-blue-600 appearance-none cursor-pointer truncate"
             >
-              {allClients.map((client) => (
+              {accessibleClients.map((client) => (
                 <option key={client.id} value={client.id}>
                   {client.name}
                 </option>
@@ -159,13 +196,13 @@ export function AppSidebar({ onCloseMobile }: AppSidebarProps) {
 
               {item.adminOnly && (
                 <span
-                  className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${
+                  className={`text-[9px] px-1.5 py-0.5 rounded font-mono font-semibold uppercase tracking-wider ${
                     isActive
                       ? 'bg-neutral-800 text-neutral-200 dark:bg-neutral-200 dark:text-neutral-800'
                       : 'bg-neutral-200/80 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400'
                   }`}
                 >
-                  STAFF
+                  {isSuperadmin ? 'SUPER' : 'OPS'}
                 </span>
               )}
             </Link>
@@ -175,49 +212,68 @@ export function AppSidebar({ onCloseMobile }: AppSidebarProps) {
 
       {/* Demo Switcher & Current User Footer */}
       <div className="p-3 border-t border-neutral-200 dark:border-neutral-800 bg-neutral-50/40 dark:bg-neutral-950/40">
-        <div className="mb-2.5 px-1 flex items-center justify-between">
+        <div className="mb-2 px-1 flex items-center justify-between">
           <span className="text-[10px] font-semibold text-neutral-400 uppercase tracking-wider flex items-center gap-1">
             <Sparkles className="w-3 h-3 text-[#D39E36]" />
-            Demo Persona Switcher
+            RBAC Persona Sandbox
           </span>
         </div>
 
-        <div className="space-y-1 mb-3">
+        <div className="space-y-1 mb-2.5 max-h-36 overflow-y-auto">
           {availableUsers.map((user) => {
             const isCurrent = user.id === currentUser.id;
+            const roleInfo = ROLE_DEFINITIONS[user.role];
             return (
               <button
                 key={user.id}
                 type="button"
                 onClick={() => setCurrentUser(user)}
-                className={`w-full text-left px-2 py-1.5 rounded text-[11px] transition-colors flex items-center justify-between ${
+                className={`w-full text-left px-2 py-1.5 rounded-md text-[11px] transition-colors flex items-center justify-between ${
                   isCurrent
                     ? 'bg-neutral-200/80 dark:bg-neutral-800 text-neutral-950 dark:text-white font-semibold'
                     : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-900'
                 }`}
               >
-                <div className="truncate">
-                  <div className="leading-tight">{user.name}</div>
-                  <div className="text-[9px] text-neutral-400 leading-tight">
-                    {user.role === 'super_admin' ? 'BizChefs Staff' : user.title || 'Client'}
+                <div className="truncate min-w-0 pr-1">
+                  <div className="leading-tight truncate">{user.name}</div>
+                  <div className="text-[9px] text-neutral-400 leading-tight truncate">
+                    {roleInfo.label}
                   </div>
                 </div>
-                {isCurrent && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />}
+                <div className="flex items-center gap-1 shrink-0">
+                  <span
+                    className={`text-[9px] px-1 py-0.2 rounded font-mono uppercase border ${getRoleBadgeStyle(
+                      user.role
+                    )}`}
+                  >
+                    {user.role}
+                  </span>
+                  {isCurrent && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />}
+                </div>
               </button>
             );
           })}
         </div>
 
         {/* Current User Card */}
-        <div className="pt-2 border-t border-neutral-200 dark:border-neutral-800/80 flex items-center gap-2.5 px-1">
+        <div className="pt-2 border-t border-neutral-200 dark:border-neutral-800/80 flex items-center gap-2 px-1">
           <div className="w-7 h-7 rounded-full bg-[#151921] border border-neutral-300 dark:border-neutral-700 flex items-center justify-center text-xs font-semibold text-neutral-200 shrink-0">
             {currentUser.name.charAt(0)}
           </div>
           <div className="min-w-0 flex-1">
-            <div className="text-xs font-semibold text-neutral-900 dark:text-neutral-100 truncate">
-              {currentUser.name}
+            <div className="text-xs font-semibold text-neutral-900 dark:text-neutral-100 truncate flex items-center justify-between">
+              <span className="truncate">{currentUser.name}</span>
             </div>
-            <div className="text-[10px] text-neutral-500 truncate">{currentUser.email}</div>
+            <div className="text-[10px] text-neutral-500 truncate flex items-center gap-1.5 mt-0.5">
+              <span
+                className={`text-[8.5px] px-1 py-0.2 rounded font-mono uppercase font-semibold border ${getRoleBadgeStyle(
+                  currentUser.role
+                )}`}
+              >
+                {currentUser.role}
+              </span>
+              <span className="truncate">{currentUser.email}</span>
+            </div>
           </div>
         </div>
       </div>

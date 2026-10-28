@@ -198,7 +198,10 @@ export default function SupportPage() {
               {/* Messages Stream */}
               <div className="flex-1 py-4 space-y-3 overflow-y-auto max-h-[360px]">
                 {currentMessages.map((msg) => {
-                  const isStaff = msg.senderRole === 'super_admin' || msg.senderRole === 'admin';
+                  const isStaff =
+                    msg.senderRole === 'superadmin' ||
+                    msg.senderRole === 'admin' ||
+                    msg.senderRole === 'tech';
                   return (
                     <div
                       key={msg.id}
