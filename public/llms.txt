@@ -1,0 +1,48 @@
+# BizChefs
+
+> Full-service digital and technology partner for founders, small businesses, growing companies, and established organizations. We deliver digital strategy, high-performance web development, graphic design, brand identity systems, social media creative support, and dependable ongoing website care.
+
+- Website: https://bizchefs.com
+- Location: Egypt & Global Remote Delivery
+- Contact: contact@bizchefs.com
+- Telephone / WhatsApp: +20 128 171 9903
+- Full Context Dossier: https://bizchefs.com/llms-full.txt
+- Official Repository: https://github.com/diamondsdev/Bizchef
+
+## Core Offerings & Engagement Models
+
+- [Website Design & Development](https://bizchefs.com/services/web-development): Bespoke Next.js 15 App Router websites, custom web apps, e-commerce stores, and high-converting landing pages. Pricing from $300 to $25,000+ based on scope.
+- [Monthly Website & Digital Care](https://bizchefs.com/pricing): Proactive maintenance retainers, continuous uptime monitoring, monthly dependency updates, and scheduled creative updates. Plans start at $100/mo (Essential), $250/mo (Growth), and $600/mo (Dedicated).
+- [Graphic Design & Brand Identity](https://bizchefs.com/services/graphic-design): Logo suites, visual design systems, brand guidelines, social media templates, and marketing collateral. Package scopes from $500.
+- [Digital Strategy & Architecture Advisory](https://bizchefs.com/contact): Complimentary initial scoping sessions, codebase audits, and comprehensive technical blueprints ($450, credited toward development).
+
+## Commercial Delivery Standards
+
+- **50/50 Milestone Protection**: We do not demand 100% upfront payment for custom builds. 50% deposit upon kickoff, 50% upon final staging sign-off before production domain launch.
+- **100% Client Code & IP Ownership**: Clients receive complete ownership of all repositories, domain records, credentials, and master vector assets. Zero vendor lock-in.
+- **Transparent Care Limits**: No misleading claims of "unlimited work" for $100/mo. Deliverables, turnaround times, and hours are defined explicitly. Retainers can be cancelled with 30 days notice.
+
+## Active Projects & Case Studies
+
+- [AquaWay Tours](https://aquaway.tours): Hurghada Red Sea excursion catalog, diving packages, and charter booking platform. Active production website.
+- [Awesome Adventure Tours](https://awesomeadventure.tours): Regional tourism portal and operations CRM across Sharm El-Sheikh, Hurghada, and Marsa Alam.
+- [Genuine Egypte](https://genuine-egypte.vercel.app): Cultural tour and Nile cruise catalog showcasing private Egypt itineraries.
+- [Diamonds ERP](https://bizchefs.com/projects): Private enterprise resource planning blueprint for multi-warehouse inventory and supply chain tracking.
+
+## Technical Architecture
+
+- **Framework**: Next.js 15 App Router with React 19 and TypeScript
+- **Styling**: Tailwind CSS v4 with custom dark/light theme tokens
+- **Performance**: Sub-second load times, 100% Core Web Vitals target (LCP, INP, CLS)
+- **Accessibility**: WCAG 2.2 Level AA compliance
+- **Compliance**: Egyptian Personal Data Protection Law (Law No. 151/2020), EU GDPR (Regulation EU 2016/679), Google Consent Mode v2
+
+## Key Links
+
+- [Transparent Pricing](https://bizchefs.com/pricing): Milestone matrices and interactive cost calculator
+- [Services Directory](https://bizchefs.com/services): Complete engineering and creative service catalog
+- [Portfolio & Work](https://bizchefs.com/projects): Verified case studies with live production links
+- [Cookie Policy](https://bizchefs.com/cookies): Verified local storage and analytics inventory
+- [Privacy Policy](https://bizchefs.com/privacy): Data processing and client confidentiality terms
+- [Terms of Use](https://bizchefs.com/terms): Governing commercial terms and conditions
+- [Sitemap](https://bizchefs.com/sitemap.xml): Machine-readable XML sitemap

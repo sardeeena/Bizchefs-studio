@@ -1,0 +1,516 @@
+Google AI Studio Implementation Prompt — BizChefs Complete Legal, Privacy & Client Protection Framework
+
+1. Your role
+
+Act as a senior full-stack engineer, privacy-engineering specialist, security engineer, and legal-document implementation specialist.
+
+You are working on the existing BizChefs website:
+
+- Production domain: "https://bizchefs.com"
+- Contact email: "contact@bizchefs.com"
+- Telephone / WhatsApp: "+201281719903"
+- Jurisdiction of registration: Egypt
+- Customer base: Egyptian and international customers
+- Business structure: Registered company; the exact registered legal identity must be verified from existing authoritative project information or supplied by the owner.
+
+The website uses Next.js 15 App Router, according to the existing project implementation report. Inspect the actual repository and verify the stack before changing anything.
+
+2. Primary objective
+
+Audit and implement a coherent legal, privacy, cookie-consent, security, and client-contract framework throughout the existing BizChefs website.
+
+Do not rebuild the website, redesign its established editorial aesthetic, introduce generic templates, or replace existing functionality unnecessarily.
+
+Preserve the current design system, responsive layouts, light/dark themes, branding, typography, animations, navigation, and existing features.
+
+The existing Terms of Use page is at "/terms", with "/terms-of-use" redirecting to "/terms". Review the actual implementation before editing it.
+
+Do not stop after producing an audit or recommendations. After the initial inspection, implement the appropriate changes, validate them, and report what remains unresolved.
+
+3. Mandatory safety rules
+
+1. Never invent the company's registered legal name, company registration number, tax registration number, registered address, legal representative, licensing status, or other official details.
+2. Use existing verified information when available. Otherwise, create clearly marked configuration placeholders and an owner checklist.
+3. Do not publish placeholder legal details as though they were genuine.
+4. Do not make unsupported claims such as “fully GDPR compliant,” “100% legally compliant,” or “completely secure.”
+5. Do not invent refund rights, statutory deadlines, contract terms, or legal exemptions.
+6. Distinguish statutory rights from contractual policies. Never remove rights that cannot lawfully be waived.
+7. Do not collect every conceivable personal detail simply because it is technically possible. Collect information that is relevant to a stated purpose, minimize sensitive data, and establish an appropriate legal basis.
+8. Never expose API secrets, service-role keys, private credentials, environment variables, or internal administrative information to the frontend.
+9. Do not delete, overwrite, migrate, or destructively modify existing production data, analytics settings, or integrations without explicit authorization.
+10. Do not submit real customer data to test services or consume paid API quotas unnecessarily.
+11. Do not silently install unnecessary dependencies or replace major architectural components.
+12. Separate technical implementation from questions that require approval by the company owner or qualified legal counsel.
+
+4. Begin with a repository audit
+
+Inspect the current project before making changes.
+
+Identify:
+
+- Existing legal pages and routes.
+- Current Terms of Use text and effective date.
+- Contact, quote-request, newsletter, booking, subscription, and other data-collection forms.
+- Existing Google Analytics 4 integration and the actual measurement ID source.
+- Other analytics, advertising, embedded media, chat, scheduling, payment, CRM, hosting, and third-party integrations.
+- Cookies, local storage, session storage, tracking scripts, and other browser-side storage.
+- Current backend endpoints, database tables, email delivery, and data recipients.
+- Authentication and administrative access controls, if applicable.
+- Current privacy notices, consent mechanisms, retention behavior, and deletion processes.
+- Existing sitemap, robots rules, canonical URLs, footer links, and SEO metadata.
+- Existing automated tests, lint commands, and production build configuration.
+
+Trace the actual data flows. Do not assume a form saves data merely because it displays a success message.
+
+Produce a concise findings report, then proceed with implementation. Clearly identify anything that cannot be verified from the repository.
+
+5. Legal website pages
+
+Implement the following pages using the established BizChefs design system.
+
+A. "/privacy" — Privacy Policy
+
+Create a clear, readable privacy policy covering, where applicable:
+
+- The verified identity of the data controller and relevant contact details.
+- Categories of personal data collected.
+- Information voluntarily submitted through forms.
+- Contact information, project requirements, correspondence, and client account information.
+- Technical information, server logs, analytics, device information, and cookies.
+- The purposes of each processing activity.
+- The applicable lawful basis for each purpose, as determined through legal review.
+- Whether providing particular information is optional or necessary to respond to a request or perform a contract.
+- Data recipients, processors, service providers, and relevant third-party platforms.
+- International data transfers and applicable safeguards.
+- Retention periods or objective criteria for determining them.
+- Applicable data-subject rights and how to exercise them.
+- Consent withdrawal where consent is the relevant legal basis.
+- Complaint and supervisory-authority information, verified before publication.
+- Security safeguards, without revealing exploitable security details.
+- Children’s data, if relevant to the actual services.
+- Direct marketing and communication preferences.
+- How policy updates are communicated.
+- A dedicated privacy contact channel.
+
+Use concise, plain language. Explain what BizChefs actually does, not what a generic company might do.
+
+Do not claim that consent is the legal basis for every activity. Determine and document the appropriate basis for each purpose, subject to legal review.
+
+If legal identity or other material facts are missing, maintain visible owner-only publication blockers rather than inventing information.
+
+B. "/cookies" — Cookie Policy
+
+Document all verified cookies and comparable technologies used by the website.
+
+For each relevant technology, identify:
+
+- Name or identifier, where ascertainable.
+- Provider.
+- Purpose.
+- Category.
+- Duration.
+- Whether it is first-party or third-party.
+- Whether it involves personal data.
+- The applicable consent or other legal requirement.
+
+Inspect the live code and actual integrations rather than generating a fabricated cookie inventory.
+
+Distinguish strictly necessary technologies from analytics, advertising, personalization, and other non-essential technologies.
+
+Explain how users can change their preferences and withdraw consent.
+
+If a technology's behavior or lifetime cannot be determined, mark it for verification rather than inventing a value.
+
+C. Existing "/terms" page
+
+Review and improve the current Terms of Use without unnecessarily rewriting content that is already accurate.
+
+Verify the following:
+
+- Correct operator identity and verified contact details.
+- Scope of website use.
+- Relationship between website terms and separately signed client agreements.
+- Accuracy of published prices and delivery estimates.
+- Acceptable use and prohibited activities.
+- Intellectual property and use of the BizChefs brand.
+- Ownership and licensing of client deliverables.
+- Third-party services and external links.
+- Disclaimers concerning business outcomes.
+- Liability provisions subject to mandatory law.
+- Governing law, dispute resolution, and mandatory consumer protections.
+- Privacy and cookie-policy links.
+- Versioning, effective date, and amendment procedures.
+
+Do not use broad liability exclusions or warranty disclaimers that purport to override mandatory statutory protections.
+
+Keep "/terms-of-use" working through its existing redirect behavior.
+
+D. "/services-policy" — Client Services, Payments, Cancellations and Refunds
+
+Create a separate policy explaining the general commercial terms for:
+
+- Website design and development.
+- Landing pages and e-commerce projects.
+- Custom digital platforms and integrations.
+- Graphic design, branding, and visual identity.
+- Website maintenance, hosting-related services, and digital-care subscriptions, where offered.
+- Discovery, proposals, project scope, milestones, delivery, and acceptance.
+- Deposits, milestone payments, recurring payments, and overdue invoices.
+- Client delays and dependencies.
+- Scope changes and additional work.
+- Cancellation, termination, refunds, and work already completed.
+- Subscription renewal and cancellation.
+- Third-party costs and subscriptions.
+- Client-provided materials and approvals.
+- Applicable consumer rights and statutory exceptions.
+
+Do not assume all deposits are non-refundable or that every service is exempt from cancellation rights.
+
+Where commercial practices have not been confirmed, use clearly marked owner-approval placeholders and do not present unapproved terms as binding policy.
+
+E. "/intellectual-property" — Intellectual Property and Portfolio Policy
+
+Explain the difference between:
+
+- BizChefs' pre-existing tools, code, frameworks, processes, and brand assets.
+- Third-party and open-source materials.
+- Client-provided content and assets.
+- Project-specific deliverables.
+- Rights that transfer to clients under an agreed contract.
+- Licenses that BizChefs retains or grants.
+- Portfolio publication, case studies, screenshots, and testimonials.
+
+Do not imply that BizChefs can publish confidential client work or customer testimonials without the necessary permission.
+
+Make clear that the signed project agreement determines the specific ownership and licensing arrangement, subject to applicable law.
+
+F. "/accessibility" — Accessibility and Third-Party Services
+
+Provide an accurate accessibility statement describing the company's current efforts, known limitations, and contact channel for reporting accessibility issues.
+
+Explain that third-party services and external websites may have their own terms, privacy practices, and availability.
+
+Do not claim accessibility certification or conformance to a standard unless verified through appropriate testing.
+
+6. Cookie consent and Google Analytics
+
+Implement a genuine consent-management experience appropriate to the actual technologies and applicable legal requirements.
+
+Requirements
+
+- Present a clear, accessible cookie-consent interface.
+- Offer equivalent, easy-to-understand choices for accepting and rejecting non-essential technologies where required.
+- Provide a settings interface for granular choices by category where appropriate.
+- Provide a persistent way to reopen preferences.
+- Explain categories in plain language.
+- Store the consent decision and relevant policy/version information.
+- Avoid requesting consent repeatedly when a valid choice remains applicable.
+- Allow users to withdraw or change consent.
+- Do not use deceptive design, preselected optional categories, or forced acceptance.
+- Ensure keyboard accessibility, screen-reader labels, mobile responsiveness, and light/dark theme compatibility.
+- Avoid unnecessarily blocking essential website functionality.
+
+Google Analytics 4
+
+Inspect the existing Google Analytics integration before modifying it.
+
+- Preserve the existing verified GA4 measurement ID and its configuration source.
+- Never replace a real identifier with an invented example.
+- Prevent non-essential analytics from running before the required consent is obtained.
+- Implement the applicable Google consent behavior, including Consent Mode where appropriate and correctly configured.
+- If using Consent Mode, understand that it does not replace a required consent banner or establish legal compliance by itself.
+- Ensure the default consent state is applied before analytics tags or related tracking requests execute.
+- Ensure that a rejection or withdrawal actually changes subsequent tracking behavior.
+- Verify the behavior of Google tags, cookies, and network requests in the browser.
+- Do not claim that rejecting consent stops all tracking unless that has been verified.
+- Avoid duplicate Google Analytics initialization and duplicate page-view events.
+- Preserve existing production analytics data and avoid sending real test-customer data.
+
+If an integration cannot be configured safely without owner authorization or a verified account setting, document the required action rather than guessing.
+
+Audit every other analytics, advertising, embedded, or tracking integration using the same principles.
+
+7. Data collection forms and privacy notices
+
+Review every form and data-collection point.
+
+Where relevant, support the following fields:
+
+- Full name.
+- Business or company name.
+- Work email address.
+- Telephone number, when needed.
+- Country or region, when relevant.
+- Service requested.
+- Project budget range, optional.
+- Desired timeline, optional.
+- Project description and requirements.
+- Preferred contact method.
+- Relevant attachments, only where necessary and securely handled.
+- Marketing preferences, separate from service-request processing.
+
+Do not require optional information unnecessarily.
+
+Do not request passwords, payment-card details, government identification, sensitive personal information, or unrelated personal details through ordinary inquiry forms.
+
+For each form:
+
+- Explain why the information is collected.
+- Identify mandatory versus optional fields.
+- Link to the Privacy Policy.
+- Provide any additional notice or consent required for that particular purpose.
+- Separate marketing consent from responding to a quote request or providing a service.
+- Never make marketing consent a condition of submitting an ordinary service inquiry unless legally justified.
+- Validate inputs on the server as well as in the browser.
+- Apply appropriate rate limiting, anti-abuse protections, and safe error handling.
+- Protect against injection, malicious uploads, and unauthorized access.
+- Avoid exposing submitted personal data in URLs, analytics events, console logs, or error messages.
+- Avoid collecting sensitive form contents in analytics.
+- Ensure success messages correspond to genuine successful processing.
+- Implement accessible validation and clear failure states.
+
+Do not add new data collection merely to make forms look more comprehensive.
+
+8. Internal privacy and security framework
+
+Create an owner-accessible internal compliance area or private documentation directory, depending on the existing architecture.
+
+These resources must not be publicly accessible or indexed by search engines.
+
+Implement or document the following:
+
+A. Data Processing Register
+
+Record the actual categories of data, purposes, lawful bases, recipients, retention, security measures, and transfer arrangements for each verified processing activity.
+
+B. Retention and Deletion Schedule
+
+Define retention periods or decision criteria for inquiries, inactive leads, active projects, invoices, contracts, support correspondence, analytics data, and backups.
+
+Account for applicable legal retention obligations. Do not delete records required by law or contract.
+
+C. Information Security and Incident Response Policy
+
+Document:
+
+- Access control and least privilege.
+- Multi-factor authentication where available.
+- Secure secret management.
+- Encryption in transit and appropriate protection at rest.
+- Dependency and vulnerability management.
+- Backup and recovery.
+- Incident detection and escalation.
+- Evidence preservation.
+- Breach assessment and notification procedures.
+- Vendor and subcontractor access.
+- Secure account handover and offboarding.
+
+Verify the legal incident-reporting obligations and deadlines with current authoritative sources and qualified counsel.
+
+D. Subcontractor and Vendor Agreement
+
+Prepare a template covering confidentiality, approved access, security obligations, personal-data handling, subcontracting, incident reporting, and termination of access.
+
+E. Client Handover Checklist
+
+Create a checklist for transferring websites, domains, source code, analytics, hosting, credentials, and other assets to clients securely.
+
+Never store actual passwords or private keys in a checklist.
+
+F. Internal templates
+
+Prepare reusable templates for:
+
+- Privacy requests and identity verification.
+- Data access, correction, deletion, and objection requests where applicable.
+- Consent withdrawal.
+- Security incidents.
+- Client data deletion or return.
+- Vendor reviews.
+- Access reviews.
+
+Keep all documents based on actual business operations and applicable law.
+
+9. Client contract package
+
+Create editable draft templates under a clearly labeled private or non-public documentation location.
+
+Do not publish these templates as binding contracts on the public website.
+
+A. Master Services Agreement (MSA)
+
+Cover:
+
+- Parties and verified legal identity.
+- Scope and statement-of-work relationship.
+- Fees, invoicing, and payment.
+- Responsibilities of BizChefs and the client.
+- Timelines, dependencies, and approvals.
+- Change requests and additional charges.
+- Acceptance and revisions.
+- Intellectual property and licensing.
+- Confidentiality.
+- Data protection and security.
+- Third-party dependencies.
+- Warranties and limitations subject to mandatory law.
+- Termination and consequences.
+- Dispute resolution and governing law.
+- Signatures and effective date.
+
+B. Statement of Work (SOW)
+
+Include project-specific fields for deliverables, exclusions, milestones, acceptance criteria, dependencies, pricing, payment schedule, timeline, revisions, and authorized approvers.
+
+C. Mutual NDA
+
+Prepare a practical confidentiality agreement with scope, permitted disclosures, exclusions, duration, return or deletion, and lawful disclosure exceptions.
+
+D. Website Care and Subscription Agreement
+
+Cover service scope, maintenance windows, support channels, response targets, backups, security updates, exclusions, billing, renewal, cancellation, access requirements, and third-party costs.
+
+Do not promise guaranteed uptime or response times unless the business has approved and can meet those commitments.
+
+E. Change Request Form
+
+Include requested change, reason, cost, schedule impact, affected deliverables, and explicit approval before additional work begins.
+
+F. Data Processing Agreement (DPA)
+
+Create a template for cases where BizChefs processes personal data on behalf of a client.
+
+Include the applicable roles of the parties, processing instructions, purposes, data categories, data-subject categories, confidentiality, security, subprocessors, assistance with rights requests, incident cooperation, international transfers, audits, and data return/deletion.
+
+Do not assume BizChefs is always a processor or always a controller. Determine the role for each actual processing activity.
+
+All templates must be clearly labeled as drafts requiring legal review before signature.
+
+10. Egyptian law and international customers
+
+Use current authoritative legal sources to identify requirements requiring review.
+
+At minimum, assess:
+
+- Egypt's Personal Data Protection Law No. 151 of 2020 and its Executive Regulations under Ministerial Decision No. 816 of 2025.
+- Relevant transition and implementation requirements, including the reported 1 November 2026 deadline.
+- Licensing, permits, registration, data-protection officer, representation, recordkeeping, transfer, consent, direct-marketing, and breach-reporting obligations where applicable.
+- Egypt's Consumer Protection Law No. 181 of 2018 and relevant executive regulations.
+- Egypt's Electronic Signature Law No. 15 of 2004 and applicable electronic contracting requirements.
+- Applicable copyright, intellectual-property, tax, invoicing, and VAT requirements.
+- GDPR, UK GDPR, and other foreign privacy or consumer laws where the company's activities and customer targeting make them applicable.
+
+Use official legislation, competent authorities, or reputable legal analysis. Clearly distinguish confirmed legal requirements from issues needing professional interpretation.
+
+Do not assume that accepting international clients automatically makes every foreign privacy law applicable. Assess the relevant scope and circumstances.
+
+Produce a legal-review checklist containing:
+
+- Requirement or question.
+- Why it may apply.
+- Evidence needed.
+- Responsible person.
+- Urgency.
+- Status: verified, unresolved, or counsel review required.
+
+Do not present the website as compliant merely because these documents exist.
+
+11. Navigation, SEO, and technical integration
+
+Integrate the approved public policies into the existing website.
+
+- Add the appropriate policy links to the global footer.
+- Add contextual privacy links to forms.
+- Ensure the existing Terms of Use page links to relevant policies.
+- Update the sitemap with canonical URLs for public legal pages only.
+- Keep internal templates and compliance records out of the public sitemap.
+- Configure accurate page titles, descriptions, canonical URLs, and social metadata.
+- Keep public legal pages indexable if appropriate.
+- Ensure "/robots.txt" does not accidentally block public legal pages.
+- Keep internal compliance documents protected by actual authorization controls; "robots.txt" is not a security mechanism.
+- Maintain existing redirects and avoid redirect loops.
+- Avoid duplicate routes, duplicate metadata, and broken internal links.
+- Preserve accessibility and responsive behavior.
+
+12. Implementation quality and verification
+
+Use the existing codebase and its established conventions.
+
+Implement changes in small, coherent steps.
+
+After implementation:
+
+1. Run the existing production build.
+2. Run available linting and relevant automated tests.
+3. Add or update tests for consent persistence, rejection, withdrawal, and analytics initialization.
+4. Test public legal routes and redirects.
+5. Verify navigation and footer links.
+6. Verify form validation, privacy notices, and error handling.
+7. Verify that internal templates cannot be accessed publicly.
+8. Check for accidental exposure of environment variables, secrets, or sensitive data.
+9. Verify that consent choices are respected across page navigation and reloads.
+10. Inspect browser network requests and cookies before and after consent, rejection, and withdrawal.
+11. Verify that the sitemap contains the correct public pages.
+12. Report any issue that requires real credentials, production access, owner approval, or legal review.
+
+Do not report a test as passed unless it was actually executed. Do not claim production verification based solely on a successful local build.
+
+Avoid unnecessary external API calls and do not run expensive integration tests that consume paid API quotas unless essential and authorized.
+
+13. Owner configuration and approval
+
+Create a clear, non-public checklist of the information required to finalize the framework.
+
+Include:
+
+- Exact registered legal company name.
+- Company registration details, where required.
+- Verified registered address.
+- Verified tax and invoicing details, where applicable.
+- Authorized legal contact.
+- Actual payment methods and payment processor.
+- Current deposit and milestone-payment practices.
+- Actual refund and cancellation procedures.
+- Subscription renewal and cancellation practices.
+- Hosting and database providers.
+- Email, CRM, analytics, advertising, and communication providers.
+- Actual data retention requirements.
+- Existing data-protection registrations, permits, or appointments, if any.
+- Whether clients can upload files or provide access to their own systems.
+- Whether BizChefs uses subcontractors or handles client personal data.
+- Which international markets are actively targeted.
+
+Use explicit placeholders until these details are verified. Do not block safe technical work merely because an owner detail is missing, but do block publication of materially inaccurate legal statements.
+
+14. Final report
+
+At completion, provide a clear implementation report with:
+
+1. Files created and changed.
+2. Public pages and routes implemented.
+3. Cookie-consent and analytics behavior.
+4. Forms and data flows reviewed.
+5. Security controls implemented.
+6. Contract and internal document templates created.
+7. Build, lint, and test results, including failures.
+8. Items that could not be verified.
+9. Owner decisions still required.
+10. Legal questions requiring qualified counsel.
+11. Any production deployment steps still outstanding.
+
+For each item, use one of these statuses:
+
+- Implemented and tested
+- Implemented, awaiting owner configuration
+- Requires legal review
+- Blocked by missing information
+- Not implemented, with a reason
+
+Final instruction
+
+Start by inspecting the existing repository and its real integrations. Then implement the complete framework without rebuilding the site, inventing company details, weakening existing security, or disrupting current functionality.
+
+Prioritize accurate privacy disclosures, genuine consent behavior, secure data handling, and legally reviewable documents over cosmetic completeness.
+
+The final result must be a coherent, maintainable BizChefs legal and privacy framework—not merely a collection of generic policy pages.
+
+Do not claim legal compliance or production readiness until the relevant technical checks, owner confirmations, and legal review have actually been completed.

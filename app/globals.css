@@ -1,0 +1,69 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background-color: #fafafa;
+    color: #171717;
+    transition: background-color 150ms ease, color 150ms ease;
+  }
+
+  .dark body {
+    background-color: #0c0e12;
+    color: #f3f4f6;
+  }
+
+  /* Optical text compensation in dark mode */
+  .dark {
+    letter-spacing: 0.005em;
+  }
+
+  /* Custom selection */
+  ::selection {
+    background-color: #171717;
+    color: #ffffff;
+  }
+
+  .dark ::selection {
+    background-color: #f3f4f6;
+    color: #0c0e12;
+  }
+
+  /* Focus ring accessibility */
+  :focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+  }
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.4);
+  border-radius: 9999px;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(75, 85, 99, 0.4);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(107, 114, 128, 0.7);
+}
+
+/* Modal and layout utilities */
+.modal-open {
+  overflow: hidden;
+}

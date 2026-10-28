@@ -1,0 +1,141 @@
+# BizChefs — Comprehensive Context Dossier (llms-full.txt)
+
+> Complete technical, commercial, organizational, and architectural reference document for BizChefs (https://bizchefs.com). Updated October 28, 2026.
+
+---
+
+## 1. Executive Summary & Brand Identity
+
+- **Brand Name**: BizChefs (legal entity operating https://bizchefs.com)
+- **Role**: Full-Service Digital & Technology Partner
+- **Headquarters**: Egypt & Global Remote Delivery (Cairo / Hurghada / Alexandria / Remote Worldwide)
+- **Primary Contact**: contact@bizchefs.com
+- **Direct Telephone / WhatsApp**: +20 128 171 9903
+- **Primary Website**: https://bizchefs.com
+- **GitHub Repository**: https://github.com/diamondsdev/Bizchef
+- **Core Mission**: Partnering with business founders, growing commercial companies, tourism operators, and enterprises to engineer high-performance web platforms, distinctive brand systems, and reliable ongoing website care retainers.
+
+---
+
+## 2. Service Offerings & Pricing Architecture
+
+BizChefs maintains a transparent, milestone-based pricing model with zero hidden fees.
+
+### 2.1 Website Design & Engineering
+- **Starting Price**: $300 (Landing pages / focused business sites)
+- **Typical Range**: $300 – $25,000+
+- **Turnaround**: 1 to 8 weeks depending on scope
+- **Payment Structure**: 50% deposit upon kickoff, 50% upon final staging sign-off before production domain launch.
+- **Tiers**:
+  1. **Starter Business Website ($300 – $800)**: Single-page or 3-page custom layout, Next.js 15 App Router, TypeScript, sub-second Core Web Vitals, WhatsApp integration, edge CDN deployment.
+  2. **Multi-Page Commercial Platform ($1,000 – $3,500)**: Full catalog/service architecture, headless CMS or Markdown support, rate-limited lead capture pipeline, Schema.org JSON-LD, micro-animations, 100% client code ownership.
+  3. **E-Commerce & Custom Booking Portal ($4,500 – $12,000)**: Stripe / Paymob checkout flows, user authentication, reservation calendars, automated transactional emails, administrative dashboards.
+  4. **Custom Web Application / Enterprise ERP ($15,000 – $25,000+)**: Multi-tenant database partitioning (PostgreSQL / Supabase), role-based access control (RBAC), third-party ERP/CRM integrations, high-density tabular grids with sub-50ms sorting.
+
+### 2.2 Monthly Website & Digital Care Retainers
+- **Starting Price**: From $100 / month (or $83/mo billed annually - 17% savings)
+- **Commitment**: Flexible monthly recurring. No lock-in contracts; cancel with 30 days notice.
+- **Tiers**:
+  1. **Essential Care ($100/mo / $83/mo annual)**: Weekly uptime monitoring, monthly dependency & security updates, offsite cloud backups, up to 1 hour of monthly content/technical changes, 48-hour SLA response.
+  2. **Commercial Growth ($250/mo / $208/mo annual)**: 24/7 continuous uptime monitoring & alerts, bi-weekly security audits, daily database backups, up to 4 hours of monthly engineering/creative support, monthly Core Web Vitals tuning, priority 24-hour SLA.
+  3. **Dedicated Retainer ($600+/mo / $500/mo annual)**: Real-time anomaly detection, weekly staging pipeline upgrades, continuous automated failover backups, up to 10 hours of active feature development, direct WhatsApp channel to senior engineering team, guaranteed 4-hour emergency SLA.
+
+### 2.3 Graphic Design & Brand Identity
+- **Scope**: Original vector logos, visual guidelines, typography palettes, and social media template suites.
+- **Pricing**: Scoped from $500 (Brand Foundations) to $1,200 (Complete Brand Identity System) and $2,500+ (Multi-Channel Enterprise Brand Suite).
+- **Deliverables**: 100% editable vector master source files (Figma, AI, SVG, EPS, PDF), trademark-ready copyright assignment.
+
+### 2.4 Digital Strategy & Architecture Advisory
+- **Discovery Session**: Complimentary exploratory consultation ($0) with a senior engineer.
+- **Technical Blueprint Sprint**: $450 fixed-fee (100% credited toward your project build if you proceed with BizChefs).
+
+---
+
+## 3. Verified Portfolio Case Studies
+
+1. **AquaWay Tours** (https://aquaway.tours)
+   - Category: Travel & Tourism
+   - Location: Hurghada, Red Sea, Egypt
+   - Stack: Next.js 15, TypeScript, Tailwind CSS, REST APIs
+   - Status: Active Production Website (Verified HTTP 200)
+   - Scope: Interactive excursion catalogue for diving, Giftun Island boat trips, and luxury yacht charters.
+
+2. **Awesome Adventure Tours** (https://awesomeadventure.tours)
+   - Category: CRM & Tourism Operations
+   - Location: Sharm El-Sheikh, Hurghada, Marsa Alam, Egypt
+   - Stack: Next.js, Node.js / Express, Tailwind CSS, CRM Workflows
+   - Status: Active Production Website (Verified HTTP 200) with previous preview at https://mahmoud-crm-eosin.vercel.app
+
+3. **Genuine Egypte** (https://genuine-egypte.vercel.app)
+   - Category: Cultural Tourism & Private Itineraries
+   - Location: Cairo & Upper Egypt
+   - Stack: Next.js, Tailwind CSS, Accessible Responsive UI
+   - Status: Active Vercel Preview (Verified HTTP 200)
+
+4. **Diamonds ERP**
+   - Category: Enterprise Resource Planning
+   - Scope: Multi-warehouse inventory, procurement ledger, role-based access control, sub-50ms data grid sorting.
+   - Status: Private Development Project
+
+---
+
+## 4. Technical Stack & Engineering Standards
+
+- **Runtime & Framework**: Node.js 20+, Next.js 15 (App Router), React 19, TypeScript
+- **Styling Architecture**: Tailwind CSS v4, PostCSS, custom CSS variables for light/dark theme persistence
+- **Animation**: `motion/react` for buttery 60fps route transitions and modal dialogs
+- **Icons**: `lucide-react` (strictly no ad-hoc SVGs)
+- **Forms & Anti-Spam**: Server-side rate-limited Next.js API Routes (`/api/contact`), in-memory IP sliding window, honeypot bot trap, structured JSON response with tracking reference IDs.
+- **Security Hardening**:
+  - Content Security Policy (CSP) headers
+  - Strict-Transport-Security (HSTS), X-Frame-Options: DENY, X-Content-Type-Options: nosniff
+  - PostCSS 8.5.23+ and postcss-selector-parser 7.1.6+ (zero CVE advisories)
+  - No secret leaks: API keys server-only via `process.env.GEMINI_API_KEY`
+- **PWA Capabilities**: Service Worker, Web App Manifest (`manifest.json`), install prompt handler, offline fallback indicator.
+- **Accessibility**: WCAG 2.2 Level AA compliance, semantic HTML5, screen-reader landmarks, focus trapping on modals.
+
+---
+
+## 5. Regulatory Compliance & Data Protection
+
+- **Egyptian Law No. 151 of 2020**: Full adherence to the Egyptian Personal Data Protection Law regarding lawful consent, purpose limitation, subject access requests, and cross-border data transfer safeguards.
+- **European Union GDPR (Regulation EU 2016/679)**: Explicit consent before non-essential cookies, Google Consent Mode v2 implementation (`ad_storage: denied`, `analytics_storage: denied` until opt-in).
+- **First-Party Storage Inventory**:
+  - `bizchefs_cookie_consent_v1`: LocalStorage (Stores consent decision and timestamp)
+  - `bizchefs_theme`: LocalStorage (Theme preference dark/light)
+  - `pwa_prompt_dismissed_until`: LocalStorage (14-day suppression)
+  - `bizchefs_plan_config_draft`: SessionStorage (Caches user tier selection during session)
+  - `_ga`, `_ga_*`: HTTP Cookies (Google Analytics 4, only activated upon opt-in consent)
+
+---
+
+## 6. Machine-Readable API & Route Directory
+
+| Route | Method | Description |
+|---|---|---|
+| `/` | GET | Homepage with Hero, Work, Services, Interactive Pricing, Ventures, FAQ |
+| `/pricing` | GET | Comprehensive pricing guide, tier matrix & interactive calculator |
+| `/services` | GET | Master engineering and design services directory |
+| `/services/web-development` | GET | Next.js and custom web application specifications |
+| `/services/maintenance` | GET | Ongoing website care policy and SLA commitments |
+| `/services/graphic-design` | GET | Brand identity, logo design, and marketing collateral |
+| `/services/seo` | GET | Technical SEO, Core Web Vitals audit & schema markup |
+| `/services/crm` | GET | Bespoke CRM, lead management & workflow platforms |
+| `/services/cms` | GET | Headless CMS architecture & client publishing tools |
+| `/services/erp` | GET | Multi-tenant ERP and inventory operations platforms |
+| `/projects` | GET | Case studies with live production verification links |
+| `/about` | GET | Company background, engineering philosophy, and team |
+| `/process` | GET | 5-phase delivery lifecycle (Discover, Design, Build, QA, Launch) |
+| `/faq` | GET | Answers to technical, commercial, and warranty questions |
+| `/contact` | GET | Inquiry channels (Form, WhatsApp, Direct Email, Phone) |
+| `/terms` | GET | Commercial Terms of Use and service agreements |
+| `/privacy` | GET | Privacy Policy and Data Subject rights |
+| `/cookies` | GET | Verified technology inventory and cookie preference settings |
+| `/accessibility` | GET | Accessibility statement and WCAG 2.2 AA audit notes |
+| `/services-policy` | GET | Milestone guarantees, refund terms, and scope boundaries |
+| `/intellectual-property` | GET | 100% Client code and asset ownership terms |
+| `/api/contact` | POST | Rate-limited lead submission endpoint with validation |
+| `/sitemap.xml` | GET | XML Sitemap for search crawlers |
+| `/robots.txt` | GET | Crawler directives (Googlebot, Bingbot, GPTBot, ClaudeBot) |
+| `/llms.txt` | GET | Curated LLM standard manifest |
+| `/llms-full.txt` | GET | This full context file |

@@ -1,0 +1,6 @@
+{
+  "name": "BizChefs Studio — Client Portal",
+  "description": "Production-grade client portal for BizChefs digital and technology clients. Manage custom websites, domains, Hostinger hosting, deployments, Google Analytics 4, Search Console, files, and support.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
