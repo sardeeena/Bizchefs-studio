@@ -10,14 +10,20 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       {
         error: 'GOOGLE_AUTH_UNCONFIGURED',
-        message: 'Google OAuth client credentials are not yet configured in environment variables.',
+        message: 'Google OAuth client credentials are not yet configured in environment variables (GOOGLE_CLIENT_ID missing).',
       },
       { status: 503 }
     );
   }
 
+  // Extract client workspace if provided
+  const workspaceClientId = request.nextUrl.searchParams.get('clientId') || '';
+
   // Generate cryptographically secure CSRF state token
-  const state = crypto.randomBytes(32).toString('hex');
+  const csrfToken = crypto.randomBytes(32).toString('hex');
+  const statePayload = Buffer.from(
+    JSON.stringify({ csrf: csrfToken, clientId: workspaceClientId })
+  ).toString('base64url');
 
   const scopes = [
     'openid',
@@ -34,12 +40,12 @@ export async function GET(request: NextRequest) {
   authUrl.searchParams.set('scope', scopes);
   authUrl.searchParams.set('access_type', 'offline');
   authUrl.searchParams.set('prompt', 'consent');
-  authUrl.searchParams.set('state', state);
+  authUrl.searchParams.set('state', statePayload);
 
   const response = NextResponse.redirect(authUrl.toString());
 
-  // Store state in secure HTTP-only cookie with SameSite=Lax for CSRF verification
-  response.cookies.set('bizchefs_oauth_state', state, {
+  // Store CSRF in secure HTTP-only cookie
+  response.cookies.set('bizchefs_oauth_csrf', csrfToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',

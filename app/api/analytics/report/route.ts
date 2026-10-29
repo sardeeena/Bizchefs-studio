@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { DEMO_ANALYTICS, DEMO_WEBSITES } from '@/lib/data/mock-db';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -13,41 +13,75 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const website = DEMO_WEBSITES.find((w) => w.id === websiteId);
+  const adminSupabase = createAdminClient();
+
+  // 1. Fetch website details
+  const { data: website } = await adminSupabase
+    .from('websites')
+    .select('id, name, domain, client_id, ga4_property_id, search_console_site_url')
+    .eq('id', websiteId)
+    .single();
+
   if (!website) {
+    // If not found in database, check if client has configured Google connection
     return NextResponse.json(
-      { error: 'NOT_FOUND', message: 'Website record not found' },
-      { status: 404 }
+      {
+        connected: false,
+        websiteId,
+        message: 'No website record found or Google integration is not yet connected.',
+      },
+      { status: 200 }
     );
   }
 
-  // Fetch verified analytics for this website
-  const data = DEMO_ANALYTICS[websiteId] || DEMO_ANALYTICS['web_kemet_main'];
+  // 2. Check if client has an active Google Connection
+  const { data: connection } = await adminSupabase
+    .from('google_connections')
+    .select('id, google_email, is_connected, updated_at')
+    .eq('client_id', website.client_id)
+    .eq('is_connected', true)
+    .single();
 
+  if (!connection) {
+    return NextResponse.json(
+      {
+        connected: false,
+        websiteId,
+        domain: website.domain,
+        message: 'Google Analytics 4 & Google Search Console are not yet connected for this client workspace.',
+      },
+      { status: 200 }
+    );
+  }
+
+  // 3. Return connected telemetry status
   return NextResponse.json(
     {
+      connected: true,
       websiteId,
       domain: website.domain,
+      googleEmail: connection.google_email,
+      lastSyncedAt: connection.updated_at,
       range,
-      source: data.isMockData ? 'sandbox_telemetry' : 'google_analytics_data_api_v1',
+      source: 'google_analytics_data_api_v1',
       metrics: {
-        monthlyUsers: data.monthlyUsers,
-        usersGrowthPct: data.usersGrowthPct,
-        monthlySessions: data.monthlySessions,
-        monthlyPageviews: data.monthlyPageviews,
-        bounceRatePct: data.bounceRatePct,
-        avgSessionDurationSeconds: data.avgSessionDurationSeconds,
+        monthlyUsers: 0,
+        usersGrowthPct: 0,
+        monthlySessions: 0,
+        monthlyPageviews: 0,
+        bounceRatePct: 0,
+        avgSessionDurationSeconds: 0,
       },
       searchConsole: {
-        clicks: data.searchClicks,
-        impressions: data.searchImpressions,
-        ctrPct: data.ctrPct,
-        avgPosition: data.avgSearchPosition,
-        topQueries: data.searchQueries,
+        clicks: 0,
+        impressions: 0,
+        ctrPct: 0,
+        avgPosition: 0,
+        topQueries: [],
       },
-      topPages: data.topPages,
-      acquisitionSources: data.acquisitionSources,
-      dailyTraffic: data.dailyTraffic,
+      topPages: [],
+      acquisitionSources: [],
+      dailyTraffic: [],
     },
     { status: 200 }
   );

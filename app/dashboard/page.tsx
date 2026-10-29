@@ -23,6 +23,7 @@ import {
   BarChart3,
 } from 'lucide-react';
 import { DEMO_ANALYTICS } from '@/lib/data/mock-db';
+import { formatDate, formatTime, formatNumber } from '@/lib/utils';
 
 export default function DashboardPage() {
   const {
@@ -153,8 +154,8 @@ export default function DashboardPage() {
             <span className="text-xs font-medium">30-Day Visitors</span>
             <TrendingUp className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
           </div>
-          <div className="text-2xl font-bold text-neutral-900 dark:text-white">
-            {mainAnalytics ? mainAnalytics.monthlyUsers.toLocaleString() : '—'}
+          <div suppressHydrationWarning className="text-2xl font-bold text-neutral-900 dark:text-white">
+            {mainAnalytics ? formatNumber(mainAnalytics.monthlyUsers) : '—'}
           </div>
           <div className="text-[11px] text-emerald-600 dark:text-emerald-400 mt-1 flex items-center gap-1">
             <span>+{mainAnalytics?.usersGrowthPct || 14}% vs last month</span>
@@ -322,7 +323,7 @@ export default function DashboardPage() {
                     <div className="text-[11px] text-neutral-400 mt-1 flex items-center gap-2">
                       <span>by {dep.authorName}</span>
                       <span>·</span>
-                      <span>{new Date(dep.deployedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                      <span suppressHydrationWarning>{formatTime(dep.deployedAt)}</span>
                       <span>·</span>
                       <span>{dep.durationSeconds}s duration</span>
                     </div>
@@ -369,8 +370,8 @@ export default function DashboardPage() {
                   </div>
                   <div>
                     <div className="text-neutral-500 text-[11px]">Renewal Date</div>
-                    <div className="font-medium text-neutral-800 dark:text-neutral-200">
-                      {new Date(clientHosting[0].renewalDate).toLocaleDateString()}
+                    <div suppressHydrationWarning className="font-medium text-neutral-800 dark:text-neutral-200">
+                      {formatDate(clientHosting[0].renewalDate)}
                     </div>
                   </div>
                 </div>

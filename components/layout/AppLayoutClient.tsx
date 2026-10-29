@@ -10,10 +10,15 @@ export function AppLayoutClient({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
-  // Auth pages render without dashboard sidebar
-  const isAuthPage = pathname === '/login' || pathname === '/forgot-password';
+  // Public landing and auth pages render standalone without dashboard sidebar
+  const isStandalonePage =
+    pathname === '/' ||
+    pathname === '/login' ||
+    pathname === '/register' ||
+    pathname === '/forgot-password' ||
+    pathname === '/reset-password';
 
-  if (isAuthPage) {
+  if (isStandalonePage) {
     return <AppProvider>{children}</AppProvider>;
   }
 

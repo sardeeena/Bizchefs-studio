@@ -20,6 +20,7 @@ import {
   BarChart3,
   Calendar,
 } from 'lucide-react';
+import { formatNumber } from '@/lib/utils';
 
 export default function WebsiteAnalyticsPage({
   params,
@@ -138,8 +139,8 @@ export default function WebsiteAnalyticsPage({
             <span className="text-xs font-medium">Active Users</span>
             <Users className="w-4 h-4 text-blue-500" />
           </div>
-          <div className="text-2xl font-bold text-neutral-900 dark:text-white">
-            {analytics.monthlyUsers.toLocaleString()}
+          <div suppressHydrationWarning className="text-2xl font-bold text-neutral-900 dark:text-white">
+            {formatNumber(analytics.monthlyUsers)}
           </div>
           <div className="text-[11px] text-emerald-600 dark:text-emerald-400 mt-1 flex items-center gap-1">
             <TrendingUp className="w-3 h-3" />
@@ -152,8 +153,8 @@ export default function WebsiteAnalyticsPage({
             <span className="text-xs font-medium">Page Views</span>
             <Eye className="w-4 h-4 text-purple-500" />
           </div>
-          <div className="text-2xl font-bold text-neutral-900 dark:text-white">
-            {analytics.monthlyPageviews.toLocaleString()}
+          <div suppressHydrationWarning className="text-2xl font-bold text-neutral-900 dark:text-white">
+            {formatNumber(analytics.monthlyPageviews)}
           </div>
           <div className="text-[11px] text-neutral-500 mt-1">
             {(analytics.monthlyPageviews / analytics.monthlySessions).toFixed(1)} views / session
@@ -270,14 +271,14 @@ export default function WebsiteAnalyticsPage({
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
             <div className="p-2.5 rounded-lg bg-neutral-50 dark:bg-[#181d27]">
               <span className="text-neutral-400 block text-[10px]">Total Clicks</span>
-              <span className="font-bold text-sm text-neutral-900 dark:text-white mt-0.5 block">
-                {analytics.searchClicks.toLocaleString()}
+              <span suppressHydrationWarning className="font-bold text-sm text-neutral-900 dark:text-white mt-0.5 block">
+                {formatNumber(analytics.searchClicks)}
               </span>
             </div>
             <div className="p-2.5 rounded-lg bg-neutral-50 dark:bg-[#181d27]">
               <span className="text-neutral-400 block text-[10px]">Impressions</span>
-              <span className="font-bold text-sm text-neutral-900 dark:text-white mt-0.5 block">
-                {analytics.searchImpressions.toLocaleString()}
+              <span suppressHydrationWarning className="font-bold text-sm text-neutral-900 dark:text-white mt-0.5 block">
+                {formatNumber(analytics.searchImpressions)}
               </span>
             </div>
             <div className="p-2.5 rounded-lg bg-neutral-50 dark:bg-[#181d27]">
@@ -333,8 +334,8 @@ export default function WebsiteAnalyticsPage({
                   <span className="font-medium text-neutral-800 dark:text-neutral-200">
                     {source.source}
                   </span>
-                  <span className="text-neutral-500 font-mono">
-                    {source.users.toLocaleString()} ({source.percentage}%)
+                  <span suppressHydrationWarning className="text-neutral-500 font-mono">
+                    {formatNumber(source.users)} ({source.percentage}%)
                   </span>
                 </div>
                 <div className="w-full bg-neutral-100 dark:bg-neutral-800 h-1.5 rounded-full overflow-hidden">
@@ -365,8 +366,8 @@ export default function WebsiteAnalyticsPage({
                       {page.path}
                     </div>
                   </div>
-                  <span className="font-semibold text-neutral-700 dark:text-neutral-300 shrink-0">
-                    {page.views.toLocaleString()} views
+                  <span suppressHydrationWarning className="font-semibold text-neutral-700 dark:text-neutral-300 shrink-0">
+                    {formatNumber(page.views)} views
                   </span>
                 </div>
               ))}

@@ -9,7 +9,7 @@ export interface User {
   clientId?: string; // If owner, the client organization they belong to
   assignedClientIds?: string[]; // If admin or tech, the client workspaces they are assigned to
   title?: string;
-  createdAt: string;
+  createdAt?: string;
 }
 
 export type ClientTier = 'growth' | 'enterprise' | 'starter';

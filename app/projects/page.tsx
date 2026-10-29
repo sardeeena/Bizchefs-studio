@@ -17,6 +17,7 @@ import {
   User,
 } from 'lucide-react';
 import { TaskItem } from '@/types';
+import { formatDate } from '@/lib/utils';
 
 export default function ProjectsPage() {
   const { currentClient, currentUser } = useApp();
@@ -279,9 +280,9 @@ export default function ProjectsPage() {
                   <div className="flex items-center gap-2 text-xs text-neutral-500 mb-1">
                     <span>{m.serviceCategory}</span>
                     <span>·</span>
-                    <span className="flex items-center gap-1 font-mono text-[11px]">
+                    <span suppressHydrationWarning className="flex items-center gap-1 font-mono text-[11px]">
                       <Calendar className="w-3 h-3 text-neutral-400" />
-                      Due {new Date(m.dueDate).toLocaleDateString()}
+                      Due {formatDate(m.dueDate)}
                     </span>
                   </div>
                   <h2 className="text-base font-bold text-neutral-900 dark:text-white">

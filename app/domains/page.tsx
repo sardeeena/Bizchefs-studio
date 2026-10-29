@@ -17,6 +17,7 @@ import {
   X,
 } from 'lucide-react';
 import { DomainRecord } from '@/types';
+import { formatDate } from '@/lib/utils';
 
 export default function DomainsPage() {
   const { clientDomains, currentClient } = useApp();
@@ -128,8 +129,8 @@ export default function DomainsPage() {
                       {d.autoRenew ? 'Enabled' : 'Disabled'}
                     </span>
                   </td>
-                  <td className="py-3.5 px-4 text-neutral-600 dark:text-neutral-400 font-mono text-[11px]">
-                    {new Date(d.expiresAt).toLocaleDateString()}
+                  <td suppressHydrationWarning className="py-3.5 px-4 text-neutral-600 dark:text-neutral-400 font-mono text-[11px]">
+                    {formatDate(d.expiresAt)}
                   </td>
                   <td className="py-3.5 px-4 text-neutral-600 dark:text-neutral-400">
                     {d.dnsRecordsCount} Zone Records

@@ -24,7 +24,7 @@ interface AppTopBarProps {
 
 export function AppTopBar({ onOpenMobileNav }: AppTopBarProps) {
   const pathname = usePathname();
-  const { theme, toggleTheme } = useTheme();
+  const { theme, mounted, toggleTheme } = useTheme();
   const { notifications, markNotificationRead, searchQuery, setSearchQuery, currentClient } = useApp();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
 
@@ -99,11 +99,13 @@ export function AppTopBar({ onOpenMobileNav }: AppTopBarProps) {
           />
         </div>
 
-        {/* Demo Mode Badge */}
-        <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-amber-500/10 text-amber-700 dark:text-[#D39E36] border border-amber-500/20">
-          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-          <span>Demo Sandbox</span>
-        </div>
+        {/* Client Workspace Plan Badge */}
+        {currentClient?.activeCarePlan && (
+          <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium bg-neutral-100 dark:bg-[#151921] text-neutral-700 dark:text-neutral-300 border border-neutral-200 dark:border-neutral-800">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+            <span className="truncate max-w-[200px]">{currentClient.activeCarePlan.split('—')[0]?.trim() || 'Active Care'}</span>
+          </div>
+        )}
 
         {/* Notifications Popover Toggle */}
         <div className="relative">
@@ -181,10 +183,10 @@ export function AppTopBar({ onOpenMobileNav }: AppTopBarProps) {
         <button
           type="button"
           onClick={toggleTheme}
-          aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+          aria-label={mounted ? `Switch to ${theme === 'light' ? 'dark' : 'light'} mode` : 'Toggle theme'}
           className="p-2 text-neutral-600 dark:text-neutral-400 hover:text-neutral-950 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800/80 rounded-lg transition-colors"
         >
-          {theme === 'light' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+          {mounted && theme === 'light' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
         </button>
       </div>
     </header>

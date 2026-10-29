@@ -329,3 +329,62 @@ test('Cryptographic Security: AES-256-GCM token encryption and authentication ta
   };
   assert.throws(() => decryptToken(badTag));
 });
+
+// ==========================================
+// 6. RATE LIMITING & AUTH SECURITY TESTS
+// ==========================================
+
+import { checkRateLimit, extractClientIp, buildRateLimitResponse, RATE_LIMIT_PRESETS } from './security/rate-limiter';
+import { NextRequest } from 'next/server';
+
+test('Rate Limiter: enforces request limits and reports remaining tokens', async () => {
+  const testIp = '198.51.100.42';
+  const config = {
+    actionName: 'test_action',
+    maxRequests: 3,
+    windowSeconds: 60,
+  };
+
+  const req1 = await checkRateLimit(testIp, config);
+  assert.equal(req1.allowed, true);
+  assert.equal(req1.remaining, 2);
+
+  const req2 = await checkRateLimit(testIp, config);
+  assert.equal(req2.allowed, true);
+  assert.equal(req2.remaining, 1);
+
+  const req3 = await checkRateLimit(testIp, config);
+  assert.equal(req3.allowed, true);
+  assert.equal(req3.remaining, 0);
+
+  // 4th request exceeds maxRequests
+  const req4 = await checkRateLimit(testIp, config);
+  assert.equal(req4.allowed, false);
+  assert.equal(req4.remaining, 0);
+  assert.ok(req4.resetSeconds > 0);
+
+  // Verify RFC 7807 429 response structure
+  const response = buildRateLimitResponse(req4);
+  assert.equal(response.status, 429);
+  assert.equal(response.headers.get('Retry-After'), String(req4.resetSeconds));
+});
+
+test('Rate Limiter: extracts leftmost client IP from X-Forwarded-For header', () => {
+  const reqWithProxy = new NextRequest('https://studio.bizchefs.com/api/auth/login', {
+    headers: {
+      'x-forwarded-for': '203.0.113.195, 10.0.0.1, 192.168.1.1',
+    },
+  });
+
+  const ip = extractClientIp(reqWithProxy);
+  assert.equal(ip, '203.0.113.195');
+
+  const reqWithRealIp = new NextRequest('https://studio.bizchefs.com/api/auth/login', {
+    headers: {
+      'x-real-ip': '198.51.100.77',
+    },
+  });
+
+  const realIp = extractClientIp(reqWithRealIp);
+  assert.equal(realIp, '198.51.100.77');
+});

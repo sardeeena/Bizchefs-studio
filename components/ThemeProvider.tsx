@@ -1,38 +1,21 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useSyncExternalStore } from 'react';
+import React, { createContext, useContext, useEffect, useState, useSyncExternalStore } from 'react';
 
 type Theme = 'light' | 'dark';
 
 interface ThemeContextType {
   theme: Theme;
+  mounted: boolean;
   toggleTheme: () => void;
   setTheme: (theme: Theme) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-function getThemeSnapshot(): Theme {
-  if (typeof window === 'undefined') return 'dark';
-  const saved = localStorage.getItem('bizchefs_theme') as Theme | null;
-  if (saved === 'light' || saved === 'dark') {
-    return saved;
-  }
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-}
-
-function getServerSnapshot(): Theme {
-  return 'dark';
-}
-
-const listeners = new Set<() => void>();
-
-function subscribe(callback: () => void) {
-  listeners.add(callback);
-  return () => {
-    listeners.delete(callback);
-  };
-}
+const emptySubscribe = () => () => {};
+const getIsMounted = () => true;
+const getServerIsMounted = () => false;
 
 function updateThemeInDOM(theme: Theme) {
   if (typeof document === 'undefined') return;
@@ -44,16 +27,38 @@ function updateThemeInDOM(theme: Theme) {
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const theme = useSyncExternalStore(subscribe, getThemeSnapshot, getServerSnapshot);
+  const [theme, setThemeState] = useState<Theme>('dark');
+  const mounted = useSyncExternalStore(emptySubscribe, getIsMounted, getServerIsMounted);
 
   useEffect(() => {
-    updateThemeInDOM(theme);
-  }, [theme]);
+    // Asynchronously synchronize theme with client storage / preference after mount
+    Promise.resolve().then(() => {
+      try {
+        const saved = localStorage.getItem('bizchefs_theme') as Theme | null;
+        if (saved === 'light' || saved === 'dark') {
+          setThemeState(saved);
+          updateThemeInDOM(saved);
+        } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+          setThemeState('light');
+          updateThemeInDOM('light');
+        } else {
+          setThemeState('dark');
+          updateThemeInDOM('dark');
+        }
+      } catch {
+        // Ignore storage access error
+      }
+    });
+  }, []);
 
   const setTheme = (newTheme: Theme) => {
-    localStorage.setItem('bizchefs_theme', newTheme);
+    setThemeState(newTheme);
+    try {
+      localStorage.setItem('bizchefs_theme', newTheme);
+    } catch {
+      // Ignore storage access error
+    }
     updateThemeInDOM(newTheme);
-    listeners.forEach((l) => l());
   };
 
   const toggleTheme = () => {
@@ -62,7 +67,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme, setTheme }}>
+    <ThemeContext.Provider value={{ theme, mounted, toggleTheme, setTheme }}>
       {children}
     </ThemeContext.Provider>
   );

@@ -13,6 +13,10 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://studio.bizchefs.com'),
+  alternates: {
+    canonical: '/',
+  },
   title: {
     default: 'BizChefs Studio — Client Portal',
     template: '%s | BizChefs Studio',
@@ -23,6 +27,7 @@ export const metadata: Metadata = {
     title: 'BizChefs Studio — Client Portal',
     description:
       'Production-grade client portal for BizChefs digital and technology clients. Manage custom websites, domains, Hostinger hosting, deployments, Google Analytics 4, Search Console, files, and support.',
+    url: 'https://studio.bizchefs.com',
     type: 'website',
     siteName: 'BizChefs Studio',
     images: [

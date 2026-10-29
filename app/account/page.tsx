@@ -14,6 +14,7 @@ import {
   CheckCircle2,
   AlertCircle,
 } from 'lucide-react';
+import { formatDateTime } from '@/lib/utils';
 
 export default function AccountPage() {
   const { currentUser, currentClient } = useApp();
@@ -195,8 +196,8 @@ export default function AccountPage() {
                 </div>
               </div>
 
-              <span className="font-mono text-[11px] text-neutral-400 shrink-0">
-                {new Date(log.timestamp).toLocaleString()}
+              <span suppressHydrationWarning className="font-mono text-[11px] text-neutral-400 shrink-0">
+                {formatDateTime(log.timestamp)}
               </span>
             </div>
           ))}

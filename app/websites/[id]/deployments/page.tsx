@@ -19,6 +19,7 @@ import {
   Server,
 } from 'lucide-react';
 import { Deployment } from '@/types';
+import { formatDateTime } from '@/lib/utils';
 
 export default function WebsiteDeploymentsPage({
   params,
@@ -140,7 +141,7 @@ export default function WebsiteDeploymentsPage({
                   <div className="flex items-center gap-2 text-neutral-400 text-[11px]">
                     <span>Author: {dep.authorName}</span>
                     <span>·</span>
-                    <span>{new Date(dep.deployedAt).toLocaleString()}</span>
+                    <span suppressHydrationWarning>{formatDateTime(dep.deployedAt)}</span>
                     <span>·</span>
                     <span>{dep.durationSeconds > 0 ? `${dep.durationSeconds}s duration` : 'Running...'}</span>
                   </div>

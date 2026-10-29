@@ -1,26 +1,46 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { encryptToken } from '@/lib/crypto/encryption';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const code = searchParams.get('code');
-  const state = searchParams.get('state');
+  const rawState = searchParams.get('state');
   const error = searchParams.get('error');
 
-  const savedState = request.cookies.get('bizchefs_oauth_state')?.value;
+  const savedCsrf = request.cookies.get('bizchefs_oauth_csrf')?.value;
 
   if (error) {
     return NextResponse.redirect(
-      new URL(`/dashboard?error=${encodeURIComponent('Google authorization was cancelled or denied: ' + error)}`, request.url)
+      new URL(`/dashboard?error=${encodeURIComponent('Google authorization cancelled or denied: ' + error)}`, request.url)
     );
   }
 
-  // Strict CSRF state validation
-  if (!state || !savedState || state !== savedState) {
+  if (!rawState || !savedCsrf) {
     return NextResponse.json(
       {
         error: 'INVALID_CSRF_STATE',
         message: 'Security validation failed: OAuth state mismatch or expired session.',
+      },
+      { status: 400 }
+    );
+  }
+
+  let stateData: { csrf: string; clientId?: string } | null = null;
+  try {
+    stateData = JSON.parse(Buffer.from(rawState, 'base64url').toString('utf8'));
+  } catch {
+    return NextResponse.json(
+      { error: 'CORRUPTED_STATE', message: 'Unable to parse OAuth state token' },
+      { status: 400 }
+    );
+  }
+
+  if (!stateData || stateData.csrf !== savedCsrf) {
+    return NextResponse.json(
+      {
+        error: 'INVALID_CSRF_STATE',
+        message: 'Security validation failed: CSRF token does not match browser session.',
       },
       { status: 400 }
     );
@@ -45,7 +65,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       {
         error: 'SERVER_MISCONFIGURED',
-        message: 'Google OAuth client secret is missing in environment variables.',
+        message: 'Google OAuth client credentials (GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET) are missing.',
       },
       { status: 500 }
     );
@@ -78,17 +98,50 @@ export async function GET(request: NextRequest) {
     }
 
     const tokenData = await tokenRes.json();
+    const accessToken = tokenData.access_token;
     const refreshToken = tokenData.refresh_token;
 
-    if (refreshToken) {
-      // Encrypt the refresh token using AES-256-GCM before database insertion
-      const encrypted = encryptToken(refreshToken);
-      // In production, write `encrypted.encryptedData`, `encrypted.iv`, `encrypted.authTag` to `public.google_connections`
+    // Fetch Google profile email
+    let googleEmail = 'google-account@connected';
+    let googleUserId = '';
+    try {
+      const userRes = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      if (userRes.ok) {
+        const userInfo = await userRes.json();
+        googleEmail = userInfo.email || googleEmail;
+        googleUserId = userInfo.id || '';
+      }
+    } catch {
+      // Continue if userinfo fails
     }
 
-    const response = NextResponse.redirect(new URL('/dashboard?google_connected=true', request.url));
-    // Clear CSRF cookie
-    response.cookies.delete('bizchefs_oauth_state');
+    // Encrypt and persist refresh token if provided
+    if (refreshToken) {
+      const encrypted = encryptToken(refreshToken);
+      const adminSupabase = createAdminClient();
+
+      if (stateData.clientId) {
+        await adminSupabase.from('google_connections').upsert({
+          client_id: stateData.clientId,
+          google_user_id: googleUserId,
+          google_email: googleEmail,
+          encrypted_refresh_token: encrypted.encryptedData,
+          token_iv: encrypted.iv,
+          auth_tag: encrypted.authTag,
+          key_version: encrypted.version,
+          is_connected: true,
+          connected_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        });
+      }
+    }
+
+    const response = NextResponse.redirect(
+      new URL('/dashboard?google_connected=true', request.url)
+    );
+    response.cookies.delete('bizchefs_oauth_csrf');
     return response;
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Unknown error';

@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useApp } from '@/context/AppContext';
 import {
   LayoutDashboard,
@@ -17,7 +17,7 @@ import {
   ChevronDown,
   Building2,
   ExternalLink,
-  Sparkles,
+  LogOut,
 } from 'lucide-react';
 import { ROLE_DEFINITIONS } from '@/lib/auth/roles';
 
@@ -27,14 +27,22 @@ interface AppSidebarProps {
 
 export function AppSidebar({ onCloseMobile }: AppSidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const {
     currentUser,
-    setCurrentUser,
-    availableUsers,
     currentClient,
     setCurrentClient,
     accessibleClients,
   } = useApp();
+
+  const handleSignOut = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch {
+      // Continue to redirect
+    }
+    router.push('/login');
+  };
 
   const isSuperadmin = currentUser.role === 'superadmin';
   const isAdmin = currentUser.role === 'admin';
@@ -210,71 +218,38 @@ export function AppSidebar({ onCloseMobile }: AppSidebarProps) {
         })}
       </nav>
 
-      {/* Demo Switcher & Current User Footer */}
-      <div className="p-3 border-t border-neutral-200 dark:border-neutral-800 bg-neutral-50/40 dark:bg-neutral-950/40">
-        <div className="mb-2 px-1 flex items-center justify-between">
-          <span className="text-[10px] font-semibold text-neutral-400 uppercase tracking-wider flex items-center gap-1">
-            <Sparkles className="w-3 h-3 text-[#D39E36]" />
-            RBAC Persona Sandbox
-          </span>
-        </div>
-
-        <div className="space-y-1 mb-2.5 max-h-36 overflow-y-auto">
-          {availableUsers.map((user) => {
-            const isCurrent = user.id === currentUser.id;
-            const roleInfo = ROLE_DEFINITIONS[user.role];
-            return (
-              <button
-                key={user.id}
-                type="button"
-                onClick={() => setCurrentUser(user)}
-                className={`w-full text-left px-2 py-1.5 rounded-md text-[11px] transition-colors flex items-center justify-between ${
-                  isCurrent
-                    ? 'bg-neutral-200/80 dark:bg-neutral-800 text-neutral-950 dark:text-white font-semibold'
-                    : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-900'
-                }`}
-              >
-                <div className="truncate min-w-0 pr-1">
-                  <div className="leading-tight truncate">{user.name}</div>
-                  <div className="text-[9px] text-neutral-400 leading-tight truncate">
-                    {roleInfo.label}
-                  </div>
-                </div>
-                <div className="flex items-center gap-1 shrink-0">
-                  <span
-                    className={`text-[9px] px-1 py-0.2 rounded font-mono uppercase border ${getRoleBadgeStyle(
-                      user.role
-                    )}`}
-                  >
-                    {user.role}
-                  </span>
-                  {isCurrent && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />}
-                </div>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Current User Card */}
-        <div className="pt-2 border-t border-neutral-200 dark:border-neutral-800/80 flex items-center gap-2 px-1">
-          <div className="w-7 h-7 rounded-full bg-[#151921] border border-neutral-300 dark:border-neutral-700 flex items-center justify-center text-xs font-semibold text-neutral-200 shrink-0">
-            {currentUser.name.charAt(0)}
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="text-xs font-semibold text-neutral-900 dark:text-neutral-100 truncate flex items-center justify-between">
-              <span className="truncate">{currentUser.name}</span>
+      {/* Production User Profile & Sign Out Footer */}
+      <div className="p-3 border-t border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-950/60">
+        <div className="flex items-center justify-between gap-2 px-1">
+          <div className="flex items-center gap-2.5 min-w-0 flex-1">
+            <div className="w-8 h-8 rounded-full bg-[#151921] border border-neutral-300 dark:border-neutral-700 flex items-center justify-center text-xs font-semibold text-neutral-200 shrink-0">
+              {currentUser.name.charAt(0)}
             </div>
-            <div className="text-[10px] text-neutral-500 truncate flex items-center gap-1.5 mt-0.5">
-              <span
-                className={`text-[8.5px] px-1 py-0.2 rounded font-mono uppercase font-semibold border ${getRoleBadgeStyle(
-                  currentUser.role
-                )}`}
-              >
-                {currentUser.role}
-              </span>
-              <span className="truncate">{currentUser.email}</span>
+            <div className="min-w-0 flex-1">
+              <div className="text-xs font-semibold text-neutral-900 dark:text-neutral-100 truncate">
+                {currentUser.name}
+              </div>
+              <div className="text-[10px] text-neutral-500 truncate flex items-center gap-1.5 mt-0.5">
+                <span
+                  className={`text-[8.5px] px-1 py-0.2 rounded font-mono uppercase font-semibold border ${getRoleBadgeStyle(
+                    currentUser.role
+                  )}`}
+                >
+                  {currentUser.role}
+                </span>
+                <span className="truncate">{currentUser.email}</span>
+              </div>
             </div>
           </div>
+
+          <button
+            type="button"
+            onClick={handleSignOut}
+            title="Sign out of BizChefs Studio"
+            className="p-1.5 text-neutral-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg transition-colors shrink-0"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
         </div>
       </div>
     </aside>

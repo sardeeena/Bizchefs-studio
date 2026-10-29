@@ -15,6 +15,7 @@ import {
   MessageSquare,
 } from 'lucide-react';
 import { SupportTicket, SupportMessage } from '@/types';
+import { formatTime } from '@/lib/utils';
 
 export default function SupportPage() {
   const { clientTickets, currentClient, currentUser, addTicket, clientWebsites } = useApp();
@@ -220,8 +221,8 @@ export default function SupportPage() {
                           )}
                           {msg.senderName} {isStaff && <span className="text-[10px] text-[#D39E36]">(BizChefs Lead)</span>}
                         </span>
-                        <span className="text-neutral-400">
-                          {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        <span suppressHydrationWarning className="text-neutral-400">
+                          {formatTime(msg.createdAt)}
                         </span>
                       </div>
                       <p className="text-neutral-700 dark:text-neutral-300 leading-relaxed">

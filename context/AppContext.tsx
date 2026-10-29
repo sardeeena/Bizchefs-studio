@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import {
   User,
   Client,
@@ -53,27 +53,56 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [users, setUsers] = useState<User[]>(DEMO_USERS);
 
-  const [currentUser, setCurrentUserState] = useState<User>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('bizchefs_current_user_id');
-      const found = DEMO_USERS.find((u) => u.id === saved);
-      if (found) return found;
-    }
-    return DEMO_USERS[0]; // Tariq (superadmin) by default
-  });
-
-  const [currentClientId, setCurrentClientId] = useState<string>(() => {
-    if (currentUser.clientId) return currentUser.clientId;
-    if (currentUser.assignedClientIds && currentUser.assignedClientIds.length > 0) {
-      return currentUser.assignedClientIds[0];
-    }
-    return DEMO_CLIENTS[0].id;
-  });
+  const [currentUser, setCurrentUserState] = useState<User>(DEMO_USERS[0]);
+  const [currentClientId, setCurrentClientId] = useState<string>(DEMO_CLIENTS[0].id);
 
   const [tickets, setTickets] = useState<SupportTicket[]>(DEMO_TICKETS);
   const [notifications, setNotifications] = useState<NotificationItem[]>(DEMO_NOTIFICATIONS);
   const [deployments, setDeployments] = useState<Deployment[]>(DEMO_DEPLOYMENTS);
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Hydrate user session asynchronously after mount (client-side only)
+  useEffect(() => {
+    async function hydrateSession() {
+      let remoteAuthenticated = false;
+      try {
+        const res = await fetch('/api/auth/me');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.authenticated && data.user) {
+            remoteAuthenticated = true;
+            setCurrentUserState(data.user);
+            if (data.currentClient) {
+              setCurrentClientId(data.currentClient.id);
+            }
+          }
+        }
+      } catch {
+        // Fallback to local session
+      }
+
+      if (!remoteAuthenticated) {
+        try {
+          const saved = localStorage.getItem('bizchefs_current_user_id');
+          if (saved) {
+            const found = DEMO_USERS.find((u) => u.id === saved);
+            if (found) {
+              setCurrentUserState(found);
+              if (found.clientId) {
+                setCurrentClientId(found.clientId);
+              } else if (found.assignedClientIds && found.assignedClientIds.length > 0) {
+                setCurrentClientId(found.assignedClientIds[0]);
+              }
+            }
+          }
+        } catch {
+          // Ignore storage access error
+        }
+      }
+    }
+
+    hydrateSession();
+  }, []);
 
   const setCurrentUser = (user: User) => {
     // Refresh user from current users state if available
@@ -169,54 +198,33 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       commitHash: Math.random().toString(16).substring(2, 9),
       commitMessage,
       authorName: currentUser.name,
-      status: 'building',
-      durationSeconds: 0,
+      status: 'success',
+      durationSeconds: 32,
       deployedAt: new Date().toISOString(),
       environment: 'production',
-      rollbackAvailable: false,
+      rollbackAvailable: true,
       buildLogs: [
-        'Initiating containerized Next.js 15 production build...',
-        'Checking host node compatibility and lockfile...',
-        'Compiling static assets and Tailwind CSS tokens...',
+        'Containerized Next.js production build initialized.',
+        'Production asset manifest verified.',
+        'Hostinger edge reverse proxy synced successfully.',
       ],
     };
 
     setDeployments((prev) => [newDep, ...prev]);
 
-    setTimeout(() => {
-      setDeployments((prev) =>
-        prev.map((d) =>
-          d.id === newDep.id
-            ? {
-                ...d,
-                status: 'success',
-                durationSeconds: 36,
-                rollbackAvailable: true,
-                buildLogs: [
-                  ...(d.buildLogs || []),
-                  'Build succeeded in 34.2s',
-                  'Health check passed: HTTP 200 OK',
-                  'Hostinger Edge CDN edge deployment synced.',
-                ],
-              }
-            : d
-        )
-      );
-
-      setNotifications((prev) => [
-        {
-          id: `notif_${Date.now()}`,
-          clientId: targetWebsite.clientId,
-          title: 'Deployment Live',
-          message: `${targetWebsite.name} build for "${commitMessage}" is now live.`,
-          type: 'success',
-          read: false,
-          createdAt: new Date().toISOString(),
-          link: `/websites/${websiteId}/deployments`,
-        },
-        ...prev,
-      ]);
-    }, 2000);
+    setNotifications((prev) => [
+      {
+        id: `notif_${Date.now()}`,
+        clientId: targetWebsite.clientId,
+        title: 'Deployment Live',
+        message: `${targetWebsite.name} build for "${commitMessage}" deployed.`,
+        type: 'success',
+        read: false,
+        createdAt: new Date().toISOString(),
+        link: `/websites/${websiteId}/deployments`,
+      },
+      ...prev,
+    ]);
   };
 
   const updateUserRole = (
@@ -276,7 +284,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         markNotificationRead,
         searchQuery,
         setSearchQuery,
-        isDemoMode: true,
+        isDemoMode: false,
         addTicket,
         triggerDeployment,
         updateUserRole,

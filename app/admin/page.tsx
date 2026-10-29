@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { UserRole } from '@/types';
 import { ROLE_DEFINITIONS } from '@/lib/auth/roles';
+import { formatDateTime } from '@/lib/utils';
 
 export default function AdminPage() {
   const {
@@ -446,8 +447,8 @@ export default function AdminPage() {
                 </div>
               </div>
 
-              <span className="font-mono text-[11px] text-neutral-400 shrink-0">
-                {new Date(log.timestamp).toLocaleString()}
+              <span suppressHydrationWarning className="font-mono text-[11px] text-neutral-400 shrink-0">
+                {formatDateTime(log.timestamp)}
               </span>
             </div>
           ))}
