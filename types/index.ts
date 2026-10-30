@@ -92,6 +92,7 @@ export interface HostingService {
   monthlyCostUsd: number;
   autoRenew: boolean;
   apiConnected: boolean;
+  orderId?: string;
 }
 
 export type DeploymentStatus = 'success' | 'building' | 'failed' | 'queued';

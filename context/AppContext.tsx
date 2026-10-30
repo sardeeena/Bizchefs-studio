@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import {
   User,
   Client,
@@ -12,17 +12,7 @@ import {
   NotificationItem,
   UserRole,
 } from '@/types';
-import {
-  DEMO_USERS,
-  DEMO_CLIENTS,
-  DEMO_WEBSITES,
-  DEMO_DOMAINS,
-  DEMO_HOSTING_SERVICES,
-  DEMO_DEPLOYMENTS,
-  DEMO_TICKETS,
-  DEMO_NOTIFICATIONS,
-} from '@/lib/data/mock-db';
-import { canAccessWorkspace, canModifyUserRole } from '@/lib/auth/authorize';
+import { canAccessWorkspace } from '@/lib/auth/authorize';
 
 interface AppContextType {
   currentUser: User;
@@ -42,227 +32,248 @@ interface AppContextType {
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   isDemoMode: boolean;
-  addTicket: (ticket: Omit<SupportTicket, 'id' | 'createdAt' | 'updatedAt'>) => void;
+  addTicket: (ticket: Omit<SupportTicket, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
   triggerDeployment: (websiteId: string, commitMessage: string) => Promise<void>;
-  updateUserRole: (targetUserId: string, newRole: UserRole) => { success: boolean; error?: string };
-  toggleTaskStatus: (taskId: string) => { success: boolean; error?: string };
+  updateUserRole: (targetUserId: string, newRole: UserRole) => Promise<{ success: boolean; error?: string }>;
+  toggleTaskStatus: (taskId: string) => Promise<{ success: boolean; error?: string }>;
+  refreshData: () => Promise<void>;
 }
+
+const DEFAULT_CLIENT: Client = {
+  id: 'client_bizchefs',
+  name: 'BizChefs Digital Studio',
+  slug: 'bizchefs-studio',
+  tier: 'enterprise',
+  status: 'active',
+  contactEmail: 'contact@bizchefs.com',
+  contactPhone: '+20 128 171 9903',
+  websiteCount: 5,
+  domainCount: 5,
+  activeCarePlan: 'Monthly Website Care — Dedicated Retainer ($600/mo)',
+  createdAt: '2026-10-24T00:00:00Z',
+};
+
+const INITIAL_USER: User = {
+  id: 'usr_owner_default',
+  email: 'client@bizchefs.com',
+  name: 'BizChefs Client',
+  role: 'owner',
+  clientId: 'client_bizchefs',
+  createdAt: '2026-10-28T00:00:00Z',
+};
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
-  const [users, setUsers] = useState<User[]>(DEMO_USERS);
+  const [currentUser, setCurrentUser] = useState<User>(INITIAL_USER);
+  const [currentClient, setCurrentClient] = useState<Client>(DEFAULT_CLIENT);
+  const [allClients, setAllClients] = useState<Client[]>([DEFAULT_CLIENT]);
+  const [availableUsers, setAvailableUsers] = useState<User[]>([INITIAL_USER]);
 
-  const [currentUser, setCurrentUserState] = useState<User>(DEMO_USERS[0]);
-  const [currentClientId, setCurrentClientId] = useState<string>(DEMO_CLIENTS[0].id);
-
-  const [tickets, setTickets] = useState<SupportTicket[]>(DEMO_TICKETS);
-  const [notifications, setNotifications] = useState<NotificationItem[]>(DEMO_NOTIFICATIONS);
-  const [deployments, setDeployments] = useState<Deployment[]>(DEMO_DEPLOYMENTS);
+  const [websites, setWebsites] = useState<Website[]>([]);
+  const [domains, setDomains] = useState<DomainRecord[]>([]);
+  const [hosting, setHosting] = useState<HostingService[]>([]);
+  const [deployments, setDeployments] = useState<Deployment[]>([]);
+  const [tickets, setTickets] = useState<SupportTicket[]>([]);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Hydrate user session asynchronously after mount (client-side only)
-  useEffect(() => {
-    async function hydrateSession() {
-      let remoteAuthenticated = false;
-      try {
-        const res = await fetch('/api/auth/me');
-        if (res.ok) {
-          const data = await res.json();
-          if (data.authenticated && data.user) {
-            remoteAuthenticated = true;
-            setCurrentUserState(data.user);
-            if (data.currentClient) {
-              setCurrentClientId(data.currentClient.id);
-            }
+  // Hydrate user session from /api/auth/me and load real platform data
+  const refreshData = useCallback(async () => {
+    try {
+      // 1. Session check
+      const authRes = await fetch('/api/auth/me');
+      if (authRes.ok) {
+        const authData = await authRes.json();
+        if (authData.authenticated && authData.user) {
+          setCurrentUser(authData.user);
+          if (authData.clients && authData.clients.length > 0) {
+            setAllClients(authData.clients);
+          }
+          if (authData.currentClient) {
+            setCurrentClient(authData.currentClient);
           }
         }
-      } catch {
-        // Fallback to local session
       }
-
-      if (!remoteAuthenticated) {
-        try {
-          const saved = localStorage.getItem('bizchefs_current_user_id');
-          if (saved) {
-            const found = DEMO_USERS.find((u) => u.id === saved);
-            if (found) {
-              setCurrentUserState(found);
-              if (found.clientId) {
-                setCurrentClientId(found.clientId);
-              } else if (found.assignedClientIds && found.assignedClientIds.length > 0) {
-                setCurrentClientId(found.assignedClientIds[0]);
-              }
-            }
-          }
-        } catch {
-          // Ignore storage access error
-        }
-      }
+    } catch {
+      // Network failure on auth
     }
 
-    hydrateSession();
+    // 2. Load real websites from /api/websites
+    try {
+      const webRes = await fetch('/api/websites');
+      if (webRes.ok) {
+        const webData = await webRes.json();
+        if (webData.success && Array.isArray(webData.data)) {
+          setWebsites(webData.data);
+        }
+      }
+    } catch {
+      // Ignore
+    }
+
+    // 3. Load real domains from /api/domains
+    try {
+      const domRes = await fetch('/api/domains');
+      if (domRes.ok) {
+        const domData = await domRes.json();
+        if (domData.success && Array.isArray(domData.data)) {
+          setDomains(domData.data);
+        }
+      }
+    } catch {
+      // Ignore
+    }
+
+    // 4. Load real hosting subscriptions from /api/hosting
+    try {
+      const hostRes = await fetch('/api/hosting');
+      if (hostRes.ok) {
+        const hostData = await hostRes.json();
+        if (hostData.success && Array.isArray(hostData.data)) {
+          setHosting(hostData.data);
+        }
+      }
+    } catch {
+      // Ignore
+    }
+
+    // 5. Load real tickets from /api/support/tickets
+    try {
+      const tktRes = await fetch('/api/support/tickets');
+      if (tktRes.ok) {
+        const tktData = await tktRes.json();
+        if (tktData.success && Array.isArray(tktData.data)) {
+          setTickets(tktData.data);
+        }
+      }
+    } catch {
+      // Ignore
+    }
   }, []);
 
-  const setCurrentUser = (user: User) => {
-    // Refresh user from current users state if available
-    const freshUser = users.find((u) => u.id === user.id) || user;
-    setCurrentUserState(freshUser);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('bizchefs_current_user_id', freshUser.id);
-    }
-    if (freshUser.clientId) {
-      setCurrentClientId(freshUser.clientId);
-    } else if (freshUser.assignedClientIds && freshUser.assignedClientIds.length > 0) {
-      if (!freshUser.assignedClientIds.includes(currentClientId)) {
-        setCurrentClientId(freshUser.assignedClientIds[0]);
+  useEffect(() => {
+    let ignore = false;
+    const initialize = async () => {
+      if (!ignore) {
+        await refreshData();
       }
-    }
-  };
+    };
+    void initialize();
+    return () => {
+      ignore = true;
+    };
+  }, [refreshData]);
 
-  // Filter clients accessible to the current user
-  const accessibleClients = DEMO_CLIENTS.filter((c) =>
-    canAccessWorkspace(currentUser, c.id)
+  const accessibleClients = allClients.filter((c) => canAccessWorkspace(currentUser, c.id));
+
+  const clientWebsites = websites.filter(
+    (w) => !w.clientId || w.clientId === currentClient.id || canAccessWorkspace(currentUser, w.clientId)
   );
 
-  // Active client selection ensuring user has workspace clearance
-  const currentClient =
-    (currentUser.role === 'owner'
-      ? DEMO_CLIENTS.find((c) => c.id === currentUser.clientId)
-      : accessibleClients.find((c) => c.id === currentClientId)) ||
-    accessibleClients[0] ||
-    DEMO_CLIENTS[0];
-
-  const setCurrentClient = (client: Client) => {
-    if (canAccessWorkspace(currentUser, client.id)) {
-      setCurrentClientId(client.id);
-    }
-  };
-
-  // Filter tenant resources strictly based on workspace scoping
-  const clientWebsites = DEMO_WEBSITES.filter(
-    (w) => w.clientId === currentClient.id && canAccessWorkspace(currentUser, w.clientId)
+  const clientDomains = domains.filter(
+    (d) => !d.clientId || d.clientId === currentClient.id || canAccessWorkspace(currentUser, d.clientId)
   );
 
-  const clientDomains = DEMO_DOMAINS.filter(
-    (d) => d.clientId === currentClient.id && canAccessWorkspace(currentUser, d.clientId)
+  const clientHosting = hosting.filter(
+    (h) => !h.clientId || h.clientId === currentClient.id || canAccessWorkspace(currentUser, h.clientId)
   );
 
-  const clientHosting = DEMO_HOSTING_SERVICES.filter(
-    (h) => h.clientId === currentClient.id && canAccessWorkspace(currentUser, h.clientId)
-  );
-
-  const clientDeployments = deployments.filter((d) => {
-    const website = DEMO_WEBSITES.find((w) => w.id === d.websiteId);
-    if (!website) return false;
-    return (
-      website.clientId === currentClient.id &&
-      canAccessWorkspace(currentUser, website.clientId)
-    );
-  });
+  const clientDeployments = deployments;
 
   const clientTickets = tickets.filter(
-    (t) => t.clientId === currentClient.id && canAccessWorkspace(currentUser, t.clientId)
+    (t) => !t.clientId || t.clientId === currentClient.id || canAccessWorkspace(currentUser, t.clientId)
   );
 
   const markNotificationRead = (id: string) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-    );
+    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
   };
 
-  const addTicket = (newTicket: Omit<SupportTicket, 'id' | 'createdAt' | 'updatedAt'>) => {
-    const now = new Date().toISOString();
-    const created: SupportTicket = {
-      ...newTicket,
-      id: `tkt_${Date.now()}`,
-      createdAt: now,
-      updatedAt: now,
-    };
-    setTickets((prev) => [created, ...prev]);
+  const addTicket = async (newTicket: Omit<SupportTicket, 'id' | 'createdAt' | 'updatedAt'>) => {
+    try {
+      const res = await fetch('/api/support/tickets', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...newTicket,
+          clientId: currentClient.id,
+          senderName: currentUser.name,
+          senderRole: currentUser.role,
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.data) {
+          setTickets((prev) => [data.data, ...prev]);
+        }
+      }
+    } catch {
+      // Local fallback
+      const now = new Date().toISOString();
+      const created: SupportTicket = {
+        ...newTicket,
+        id: `tkt_${Date.now()}`,
+        createdAt: now,
+        updatedAt: now,
+      };
+      setTickets((prev) => [created, ...prev]);
+    }
   };
 
   const triggerDeployment = async (websiteId: string, commitMessage: string) => {
-    // Only tech, admin, superadmin can trigger deployments
     if (currentUser.role === 'owner') {
       throw new Error('FORBIDDEN: Owners have read-only access to deployments');
     }
 
-    const targetWebsite = DEMO_WEBSITES.find((w) => w.id === websiteId);
-    if (!targetWebsite) return;
-
-    const newDep: Deployment = {
-      id: `dep_${Date.now()}`,
-      websiteId,
-      clientId: targetWebsite.clientId,
-      commitHash: Math.random().toString(16).substring(2, 9),
-      commitMessage,
-      authorName: currentUser.name,
-      status: 'success',
-      durationSeconds: 32,
-      deployedAt: new Date().toISOString(),
-      environment: 'production',
-      rollbackAvailable: true,
-      buildLogs: [
-        'Containerized Next.js production build initialized.',
-        'Production asset manifest verified.',
-        'Hostinger edge reverse proxy synced successfully.',
-      ],
-    };
-
-    setDeployments((prev) => [newDep, ...prev]);
-
-    setNotifications((prev) => [
-      {
-        id: `notif_${Date.now()}`,
-        clientId: targetWebsite.clientId,
-        title: 'Deployment Live',
-        message: `${targetWebsite.name} build for "${commitMessage}" deployed.`,
-        type: 'success',
-        read: false,
-        createdAt: new Date().toISOString(),
-        link: `/websites/${websiteId}/deployments`,
-      },
-      ...prev,
-    ]);
-  };
-
-  const updateUserRole = (
-    targetUserId: string,
-    newRole: UserRole
-  ): { success: boolean; error?: string } => {
-    const target = users.find((u) => u.id === targetUserId);
-    if (!target) {
-      return { success: false, error: 'Target user not found' };
-    }
-
-    const check = canModifyUserRole(currentUser, target, newRole, users);
-    if (!check.allowed) {
-      return { success: false, error: check.reason || 'Permission denied' };
-    }
-
-    setUsers((prev) =>
-      prev.map((u) => (u.id === targetUserId ? { ...u, role: newRole } : u))
+    // Deployments must use verified webhooks, not simulated random hashes
+    throw new Error(
+      'DEPLOYMENT_NOTICE: Automated builds are triggered via authorized GitHub repository webhooks. Direct manual push via REST API requires GitHub webhook secret verification.'
     );
-
-    // If current user modified themselves
-    if (currentUser.id === targetUserId) {
-      setCurrentUserState((prev) => ({ ...prev, role: newRole }));
-    }
-
-    return { success: true };
   };
 
-  const toggleTaskStatus = (taskId: string): { success: boolean; error?: string } => {
-    // Owner cannot edit tasks (read-only)
-    if (currentUser.role === 'owner') {
-      return {
-        success: false,
-        error: 'FORBIDDEN: Client owners have read-only access to roadmap tasks.',
-      };
+  const updateUserRole = async (targetUserId: string, newRole: UserRole) => {
+    try {
+      const res = await fetch('/api/admin/roles', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ targetUserId, newRole }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        return { success: false, error: data.message || 'Failed to update user role' };
+      }
+
+      setAvailableUsers((prev) =>
+        prev.map((u) => (u.id === targetUserId ? { ...u, role: newRole } : u))
+      );
+      if (currentUser.id === targetUserId) {
+        setCurrentUser((prev) => ({ ...prev, role: newRole }));
+      }
+
+      return { success: true };
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Network error';
+      return { success: false, error: msg };
     }
-    // Tech, Admin, Superadmin can toggle
-    return { success: true };
+  };
+
+  const toggleTaskStatus = async (taskId: string) => {
+    try {
+      const res = await fetch('/api/tasks', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: taskId, status: 'completed' }),
+      });
+      if (res.ok) {
+        return { success: true };
+      }
+      return { success: false, error: 'Failed to update task status in database' };
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Task error';
+      return { success: false, error: msg };
+    }
   };
 
   return (
@@ -270,10 +281,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       value={{
         currentUser,
         setCurrentUser,
-        availableUsers: users,
+        availableUsers,
         currentClient,
         setCurrentClient,
-        allClients: DEMO_CLIENTS,
+        allClients,
         accessibleClients,
         clientWebsites,
         clientDomains,
@@ -289,6 +300,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         triggerDeployment,
         updateUserRole,
         toggleTaskStatus,
+        refreshData,
       }}
     >
       {children}

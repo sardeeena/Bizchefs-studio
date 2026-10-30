@@ -4,8 +4,7 @@ import React, { useState, use } from 'react';
 import Link from 'next/link';
 import { useApp } from '@/context/AppContext';
 import { canAccessWebsite } from '@/lib/auth/session';
-import { DEMO_WEBSITES } from '@/lib/data/mock-db';
-import { hostinger } from '@/lib/integrations/hostinger/client';
+import { getHostingerCapabilities } from '@/lib/integrations/hostinger/capabilities';
 import {
   Globe,
   Server,
@@ -32,27 +31,24 @@ export default function WebsiteDetailPage({
 }) {
   const resolvedParams = use(params);
   const websiteId = resolvedParams.id;
-  const { currentUser, currentClient } = useApp();
+  const { currentUser, currentClient, clientWebsites } = useApp();
 
   const [syncing, setSyncing] = useState(false);
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
   const [purgingCache, setPurgingCache] = useState(false);
   const [cacheMessage, setCacheMessage] = useState<string | null>(null);
 
-  const website = DEMO_WEBSITES.find((w) => w.id === websiteId);
+  const website = clientWebsites.find((w) => w.id === websiteId) || clientWebsites[0];
 
-  // Security check: tenant isolation
-  const hasAccess = canAccessWebsite(currentUser, websiteId);
-
-  if (!website || !hasAccess) {
+  if (!website) {
     return (
       <div className="p-8 max-w-lg mx-auto text-center rounded-2xl bg-white dark:bg-[#13171f] border border-neutral-200 dark:border-neutral-800 shadow-xl my-12">
         <Lock className="w-12 h-12 text-rose-500 mx-auto mb-3" />
         <h2 className="text-lg font-bold text-neutral-900 dark:text-white">
-          Access Denied or Website Not Found
+          Website Not Found
         </h2>
         <p className="text-xs text-neutral-500 mt-2 mb-6">
-          You are authenticated as <strong>{currentUser.email}</strong>. This website belongs to a different client organization or does not exist.
+          The requested website is not registered under your client workspace.
         </p>
         <Link
           href="/websites"
@@ -65,29 +61,44 @@ export default function WebsiteDetailPage({
     );
   }
 
-  const capabilities = hostinger.getCapabilities(
-    website.hostingType === 'vps_kvm2' ? 'vps' : 'cloud'
-  );
+  const capabilities = getHostingerCapabilities('cloud');
 
   const handleSyncHostinger = async () => {
     setSyncing(true);
     setSyncMessage(null);
-    const res = await hostinger.syncWebsiteStatus(
-      website.hostingerDomainId || 'hst_site_882910',
-      website.domain
-    );
-    setSyncing(false);
-    setSyncMessage(res.message);
+    try {
+      const res = await fetch('/api/hostinger/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ domain: website.domain }),
+      });
+      const json = await res.json();
+      setSyncMessage(json.message || 'Synced successfully');
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : 'Sync request failed';
+      setSyncMessage(`Sync error: ${msg}`);
+    } finally {
+      setSyncing(false);
+    }
   };
 
   const handlePurgeCache = async () => {
     setPurgingCache(true);
     setCacheMessage(null);
-    const res = await hostinger.purgeEdgeCache(
-      website.hostingerDomainId || 'hst_site_882910'
-    );
-    setPurgingCache(false);
-    setCacheMessage(res.message);
+    try {
+      const res = await fetch('/api/hostinger/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'purge_cache', domain: website.domain }),
+      });
+      const json = await res.json();
+      setCacheMessage(json.message || 'Purge completed');
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : 'Purge request failed';
+      setCacheMessage(`Cache purge error: ${msg}`);
+    } finally {
+      setPurgingCache(false);
+    }
   };
 
   return (

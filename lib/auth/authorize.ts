@@ -45,7 +45,7 @@ export function canModifyUserRole(
   actor: User | null,
   targetUser: User,
   newRole: UserRole,
-  allUsers: User[]
+  allUsers: User[] = []
 ): { allowed: boolean; reason?: string } {
   if (!actor) {
     return { allowed: false, reason: 'Authentication required' };

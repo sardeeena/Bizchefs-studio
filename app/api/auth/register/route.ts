@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import crypto from 'crypto';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { checkRateLimit, extractClientIp, buildRateLimitResponse, RATE_LIMIT_PRESETS } from '@/lib/security/rate-limiter';
@@ -88,7 +89,7 @@ export async function POST(request: NextRequest) {
     // 3. Create client workspace record
     let baseSlug = slugify(organizationName.trim()) || 'client';
     // Append short suffix for uniqueness
-    const slugSuffix = Math.random().toString(36).substring(2, 6);
+    const slugSuffix = crypto.randomBytes(3).toString('hex');
     const clientSlug = `${baseSlug}-${slugSuffix}`;
 
     const { data: newClient, error: clientError } = await adminSupabase

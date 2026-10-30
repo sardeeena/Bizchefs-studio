@@ -32,6 +32,9 @@ export default function WebsitesPage() {
   const [newSiteFramework, setNewSiteFramework] = useState<FrameworkType>('Next.js 15');
   const [newSiteRepo, setNewSiteRepo] = useState('');
   const [formSuccess, setFormSuccess] = useState(false);
+  const [registering, setRegistering] = useState(false);
+  const [registerError, setRegisterError] = useState<string | null>(null);
+  const { refreshData } = useApp();
 
   const filteredWebsites = clientWebsites.filter((site) => {
     const matchesSearch =
@@ -42,18 +45,48 @@ export default function WebsitesPage() {
     return matchesSearch && matchesFramework;
   });
 
-  const handleRegisterWebsite = (e: React.FormEvent) => {
+  const handleRegisterWebsite = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newSiteName.trim() || !newSiteDomain.trim()) return;
 
-    setFormSuccess(true);
-    setTimeout(() => {
-      setModalOpen(false);
-      setFormSuccess(false);
-      setNewSiteName('');
-      setNewSiteDomain('');
-      setNewSiteRepo('');
-    }, 1500);
+    setRegistering(true);
+    setRegisterError(null);
+
+    try {
+      const res = await fetch('/api/websites', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: newSiteName.trim(),
+          domain: newSiteDomain.trim(),
+          framework: newSiteFramework,
+          repositoryUrl: newSiteRepo.trim() || undefined,
+          clientId: currentClient?.id,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setRegisterError(data.message || 'Failed to register website.');
+        setRegistering(false);
+        return;
+      }
+
+      setFormSuccess(true);
+      await refreshData();
+
+      setTimeout(() => {
+        setModalOpen(false);
+        setFormSuccess(false);
+        setNewSiteName('');
+        setNewSiteDomain('');
+        setNewSiteRepo('');
+      }, 1200);
+    } catch {
+      setRegisterError('Network error while connecting website.');
+    } finally {
+      setRegistering(false);
+    }
   };
 
   return (

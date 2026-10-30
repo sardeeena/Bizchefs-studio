@@ -1,27 +1,20 @@
 'use client';
 
-import React, { useState, use } from 'react';
+import React, { use } from 'react';
 import Link from 'next/link';
 import { useApp } from '@/context/AppContext';
-import { canAccessWebsite } from '@/lib/auth/session';
-import { DEMO_WEBSITES, DEMO_VIRTUAL_FILES } from '@/lib/data/mock-db';
-import { validateSafeFilePath, validateFileContent } from '@/lib/services/file-manager';
 import {
   ArrowLeft,
   FileCode,
-  Folder,
-  FolderOpen,
-  Save,
   ShieldCheck,
-  ShieldAlert,
+  Server,
   Lock,
+  ExternalLink,
+  FolderTree,
+  Terminal,
   CheckCircle2,
   AlertTriangle,
-  History,
-  FileText,
-  RotateCcw,
 } from 'lucide-react';
-import { VirtualFileNode } from '@/types';
 
 export default function WebsiteFilesPage({
   params,
@@ -30,35 +23,19 @@ export default function WebsiteFilesPage({
 }) {
   const resolvedParams = use(params);
   const websiteId = resolvedParams.id;
-  const { currentUser } = useApp();
+  const { currentUser, clientWebsites } = useApp();
 
-  const website = DEMO_WEBSITES.find((w) => w.id === websiteId);
-  const hasAccess = canAccessWebsite(currentUser, websiteId);
+  const website = clientWebsites.find((w) => w.id === websiteId) || clientWebsites[0];
 
-  // Files state
-  const initialFiles = DEMO_VIRTUAL_FILES[websiteId] || DEMO_VIRTUAL_FILES['web_kemet_main'];
-  const [selectedFile, setSelectedFile] = useState<VirtualFileNode>(() => {
-    // default to page.tsx
-    const appDir = initialFiles.find((f) => f.name === 'app');
-    return appDir?.children?.[0] || initialFiles[0];
-  });
-
-  const [editorContent, setEditorContent] = useState<string>(selectedFile?.content || '');
-  const [saveStatus, setSaveStatus] = useState<{ success?: boolean; message?: string } | null>(null);
-
-  // Security Simulator input
-  const [testPath, setTestPath] = useState('../../etc/passwd');
-  const [testResult, setTestResult] = useState<{ valid: boolean; error?: string } | null>(null);
-
-  if (!website || !hasAccess) {
+  if (!website) {
     return (
       <div className="p-8 max-w-lg mx-auto text-center rounded-2xl bg-white dark:bg-[#13171f] border border-neutral-200 dark:border-neutral-800 shadow-xl my-12">
         <Lock className="w-12 h-12 text-rose-500 mx-auto mb-3" />
         <h2 className="text-lg font-bold text-neutral-900 dark:text-white">
-          Access Denied
+          Website Not Found
         </h2>
         <p className="text-xs text-neutral-500 mt-2 mb-6">
-          You are not authorized to view or edit files for this website.
+          The requested website is not registered under your client workspace.
         </p>
         <Link
           href="/websites"
@@ -71,55 +48,6 @@ export default function WebsiteFilesPage({
     );
   }
 
-  const handleSelectFile = (file: VirtualFileNode) => {
-    if (file.type === 'directory') return;
-    const validation = validateSafeFilePath(file.path);
-    if (!validation.valid) {
-      setSaveStatus({ success: false, message: validation.error });
-      return;
-    }
-    setSelectedFile(file);
-    setEditorContent(file.content || '');
-    setSaveStatus(null);
-  };
-
-  const isOwner = currentUser.role === 'owner';
-
-  const handleSaveFile = () => {
-    if (isOwner) {
-      setSaveStatus({
-        success: false,
-        message: 'FORBIDDEN: Client owners have read-only access to repository source code.',
-      });
-      return;
-    }
-
-    // 1. Path validation
-    const pathCheck = validateSafeFilePath(selectedFile.path);
-    if (!pathCheck.valid) {
-      setSaveStatus({ success: false, message: pathCheck.error });
-      return;
-    }
-
-    // 2. Content size validation
-    const contentCheck = validateFileContent(editorContent);
-    if (!contentCheck.valid) {
-      setSaveStatus({ success: false, message: contentCheck.error });
-      return;
-    }
-
-    // 3. Save simulation
-    setSaveStatus({
-      success: true,
-      message: `Changes saved to ${selectedFile.path}. Audit log recorded for ${currentUser.name} (${currentUser.role}).`,
-    });
-  };
-
-  const runSecurityTest = () => {
-    const result = validateSafeFilePath(testPath);
-    setTestResult(result);
-  };
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -131,180 +59,109 @@ export default function WebsiteFilesPage({
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>Back to {website.name}</span>
         </Link>
-
-        <div className="flex items-center gap-2">
-          <span className="text-[11px] text-neutral-500 flex items-center gap-1">
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-            Path Traversal Shield Active
-          </span>
-        </div>
       </div>
 
-      {/* Security Architecture Notice */}
-      <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 text-xs text-blue-900 dark:text-blue-300 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <ShieldCheck className="w-4 h-4 shrink-0 text-blue-500" />
-          <span>
-            <strong>Safe Code Sandbox</strong>: File modifications are restricted to verified project files with strict extension allowlists. Production deployments use Git pipelines.
-          </span>
-        </div>
-        <span className="font-mono text-[11px] text-neutral-500 shrink-0">
-          Max File Size: 500 KB
-        </span>
-      </div>
-
-      {/* File Explorer & Editor Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-        {/* Left Column: File Tree */}
-        <div className="p-4 rounded-xl bg-white dark:bg-[#13171f] border border-neutral-200 dark:border-neutral-800">
-          <div className="text-xs font-semibold text-neutral-900 dark:text-white pb-3 mb-2 border-b border-neutral-100 dark:border-neutral-800 flex items-center gap-1.5">
-            <FolderOpen className="w-4 h-4 text-[#D39E36]" />
-            <span>Project Files</span>
-          </div>
-
-          <div className="space-y-1 text-xs">
-            {initialFiles.map((item) => (
-              <div key={item.id} className="space-y-1">
-                {item.type === 'directory' ? (
-                  <div>
-                    <div className="flex items-center gap-1.5 py-1 px-2 font-medium text-neutral-700 dark:text-neutral-300">
-                      <Folder className="w-3.5 h-3.5 text-amber-500" />
-                      <span>{item.name}</span>
-                    </div>
-
-                    <div className="pl-4 space-y-1">
-                      {item.children?.map((child) => (
-                        <button
-                          key={child.id}
-                          type="button"
-                          onClick={() => handleSelectFile(child)}
-                          className={`w-full text-left flex items-center gap-1.5 py-1 px-2 rounded-md transition-colors ${
-                            selectedFile.id === child.id
-                              ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-950 font-semibold'
-                              : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800'
-                          }`}
-                        >
-                          <FileCode className="w-3.5 h-3.5 shrink-0" />
-                          <span className="truncate">{child.name}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => handleSelectFile(item)}
-                    className={`w-full text-left flex items-center gap-1.5 py-1 px-2 rounded-md transition-colors ${
-                      selectedFile.id === item.id
-                        ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-950 font-semibold'
-                        : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800'
-                    }`}
-                  >
-                    <FileText className="w-3.5 h-3.5 shrink-0" />
-                    <span className="truncate">{item.name}</span>
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
-
-          {/* Interactive Path Traversal Guard Tester */}
-          <div className="mt-6 pt-4 border-t border-neutral-100 dark:border-neutral-800">
-            <span className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider block mb-2">
-              Path Traversal Guard Check
+      {/* Website Banner */}
+      <div className="p-6 rounded-2xl bg-white dark:bg-[#13171f] border border-neutral-200 dark:border-neutral-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-xs font-semibold text-[#D39E36] tracking-wider uppercase">
+              Hostinger Cloud Filesystem Policy
             </span>
-            <div className="space-y-2">
-              <input
-                type="text"
-                value={testPath}
-                onChange={(e) => setTestPath(e.target.value)}
-                placeholder="Path attack string"
-                className="w-full text-[11px] font-mono bg-neutral-50 dark:bg-[#181d27] border border-neutral-200 dark:border-neutral-700 rounded-md p-1.5 text-neutral-900 dark:text-neutral-100"
-              />
-              <button
-                type="button"
-                onClick={runSecurityTest}
-                className="w-full py-1 text-[11px] font-medium rounded-md bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-800 dark:text-neutral-200"
-              >
-                Test Path Traversal Defense
-              </button>
+            <span className="text-neutral-300 dark:text-neutral-700">·</span>
+            <span className="text-xs text-neutral-500">Security Architecture</span>
+          </div>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-neutral-900 dark:text-white">
+            Deployment Files & Storage: {website.name}
+          </h1>
+          <p className="text-xs sm:text-sm text-neutral-500 mt-1">
+            Production runtime filesystem for domain <strong>{website.domain}</strong>.
+          </p>
+        </div>
 
-              {testResult && (
-                <div
-                  className={`p-2 rounded text-[10px] leading-tight ${
-                    testResult.valid
-                      ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
-                      : 'bg-rose-50 text-rose-800 dark:bg-rose-950 dark:text-rose-300 border border-rose-200 dark:border-rose-900'
-                  }`}
-                >
-                  {testResult.valid
-                    ? 'Path valid & within boundary'
-                    : `BLOCKED: ${testResult.error}`}
+        <div className="flex items-center gap-2 shrink-0">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-800/50 text-xs font-semibold">
+            <ShieldCheck className="w-3.5 h-3.5" />
+            <span>Sandboxed & Encrypted</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Real Architecture Guidance Card */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-4">
+          <div className="p-6 rounded-2xl bg-white dark:bg-[#13171f] border border-neutral-200 dark:border-neutral-800 space-y-4">
+            <h2 className="text-sm font-semibold tracking-tight text-neutral-900 dark:text-white flex items-center gap-2">
+              <FolderTree className="w-4 h-4 text-neutral-500" />
+              <span>Production Filesystem Isolation</span>
+            </h2>
+
+            <div className="p-4 rounded-xl bg-neutral-50 dark:bg-[#181d27] border border-neutral-200 dark:border-neutral-800 text-xs text-neutral-600 dark:text-neutral-400 space-y-2">
+              <div className="font-semibold text-neutral-900 dark:text-white flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                <span>Zero-Downtime Atomic Symlink Architecture</span>
+              </div>
+              <p className="leading-relaxed text-[11px]">
+                Hostinger Node.js application containers enforce strict POSIX user privilege separation. Arbitrary in-browser HTTP file modification is disabled to protect against remote code execution and web root corruption.
+              </p>
+            </div>
+
+            <div className="space-y-3 pt-2 text-xs">
+              <div className="flex items-start gap-3 p-3 rounded-lg border border-neutral-100 dark:border-neutral-800 bg-white dark:bg-[#141822]">
+                <Terminal className="w-4 h-4 text-[#D39E36] shrink-0 mt-0.5" />
+                <div>
+                  <span className="font-semibold text-neutral-900 dark:text-white block">
+                    1. Automated Git CI/CD (Recommended)
+                  </span>
+                  <span className="text-[11px] text-neutral-500">
+                    Push changes directly to your connected repository branch. The deployment pipeline builds the Next.js bundle and updates the Hostinger live symlink automatically.
+                  </span>
                 </div>
-              )}
+              </div>
+
+              <div className="flex items-start gap-3 p-3 rounded-lg border border-neutral-100 dark:border-neutral-800 bg-white dark:bg-[#141822]">
+                <Server className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
+                <div>
+                  <span className="font-semibold text-neutral-900 dark:text-white block">
+                    2. Secure SFTP / SSH Keyed Access
+                  </span>
+                  <span className="text-[11px] text-neutral-500">
+                    For direct static asset uploading or staging file inspection, connect via authorized SFTP using credentials provisioned in your Hostinger hPanel.
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Right 3 Columns: Code Editor */}
-        <div className="lg:col-span-3 rounded-xl bg-white dark:bg-[#13171f] border border-neutral-200 dark:border-neutral-800 flex flex-col overflow-hidden">
-          {/* Editor Header */}
-          <div className="px-4 py-3 border-b border-neutral-200 dark:border-neutral-800 flex items-center justify-between gap-3 bg-neutral-50/60 dark:bg-[#151921]">
-            <div className="flex items-center gap-2">
-              <span className="font-mono text-xs font-semibold text-neutral-800 dark:text-neutral-200">
-                {selectedFile.path}
-              </span>
-              <span className="text-[10px] font-mono text-neutral-400">
-                ({selectedFile.sizeBytes || 4000} bytes)
-              </span>
-            </div>
+        {/* Runtime Configuration Details */}
+        <div className="space-y-4">
+          <div className="p-5 rounded-xl bg-white dark:bg-[#13171f] border border-neutral-200 dark:border-neutral-800 space-y-3 text-xs">
+            <h3 className="font-semibold text-neutral-900 dark:text-white flex items-center gap-2">
+              <Server className="w-3.5 h-3.5 text-[#D39E36]" />
+              <span>Runtime Specifications</span>
+            </h3>
 
-            {!isOwner ? (
-              <button
-                type="button"
-                onClick={handleSaveFile}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-neutral-900 text-white dark:bg-white dark:text-neutral-950 hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-colors"
-              >
-                <Save className="w-3.5 h-3.5" />
-                <span>Save Changes</span>
-              </button>
-            ) : (
-              <div className="flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-mono rounded bg-neutral-100 dark:bg-neutral-800 text-neutral-500 border border-neutral-200 dark:border-neutral-700">
-                <Lock className="w-3 h-3 text-neutral-400" />
-                <span>Read-Only (Owner)</span>
+            <div className="space-y-2 border-t border-neutral-100 dark:border-neutral-800 pt-3">
+              <div>
+                <span className="text-neutral-400 block text-[10px] uppercase font-mono">Domain</span>
+                <span className="font-semibold text-neutral-900 dark:text-white">{website.domain}</span>
               </div>
-            )}
-          </div>
-
-          {/* Feedback banner */}
-          {saveStatus && (
-            <div
-              className={`px-4 py-2 text-xs flex items-center gap-2 ${
-                saveStatus.success
-                  ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200 border-b border-emerald-200 dark:border-emerald-800'
-                  : 'bg-rose-50 text-rose-800 dark:bg-rose-950 dark:text-rose-200 border-b border-rose-200 dark:border-rose-800'
-              }`}
-            >
-              {saveStatus.success ? (
-                <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-              ) : (
-                <AlertTriangle className="w-4 h-4 text-rose-500 shrink-0" />
-              )}
-              <span>{saveStatus.message}</span>
+              <div>
+                <span className="text-neutral-400 block text-[10px] uppercase font-mono">Server IP</span>
+                <span className="font-mono text-neutral-900 dark:text-white">{website.ipAddress}</span>
+              </div>
+              <div>
+                <span className="text-neutral-400 block text-[10px] uppercase font-mono">Hosting Platform</span>
+                <span className="text-neutral-900 dark:text-white">Hostinger Cloud (Node.js 20.x)</span>
+              </div>
+              <div>
+                <span className="text-neutral-400 block text-[10px] uppercase font-mono">Root Directory</span>
+                <span className="font-mono text-[11px] text-neutral-600 dark:text-neutral-400 break-all">
+                  /home/u115205138/domains/{website.domain}/public_html
+                </span>
+              </div>
             </div>
-          )}
-
-          {/* Code Textarea */}
-          <div className="flex-1 min-h-[420px] p-4 bg-[#f8fafc] dark:bg-[#0c0e12] font-mono text-xs leading-relaxed">
-            <textarea
-              value={editorContent}
-              readOnly={isOwner}
-              onChange={(e) => setEditorContent(e.target.value)}
-              spellCheck={false}
-              className={`w-full h-full min-h-[400px] bg-transparent text-neutral-900 dark:text-neutral-100 focus:outline-none resize-none font-mono text-xs leading-relaxed ${
-                isOwner ? 'opacity-85 cursor-default' : ''
-              }`}
-            />
           </div>
         </div>
       </div>

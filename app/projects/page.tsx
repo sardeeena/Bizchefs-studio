@@ -1,8 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '@/context/AppContext';
-import { DEMO_PROJECT_MILESTONES, DEMO_TASKS } from '@/lib/data/mock-db';
 import {
   FolderKanban,
   CheckCircle2,
@@ -15,72 +14,125 @@ import {
   Square,
   AlertTriangle,
   User,
+  Loader2,
 } from 'lucide-react';
 import { TaskItem } from '@/types';
 import { formatDate } from '@/lib/utils';
 
 export default function ProjectsPage() {
   const { currentClient, currentUser } = useApp();
-  const [tasks, setTasks] = useState<TaskItem[]>(DEMO_TASKS);
+  const [tasks, setTasks] = useState<TaskItem[]>([]);
+  const [loading, setLoading] = useState(true);
   const [taskFilter, setTaskFilter] = useState<'all' | 'todo' | 'in_progress' | 'completed'>('all');
-  const [activeTab, setActiveTab] = useState<'milestones' | 'tasks'>('tasks');
   const [taskModalOpen, setTaskModalOpen] = useState(false);
+  const [permissionNotice, setPermissionNotice] = useState<string | null>(null);
 
   // New task form state
   const [taskTitle, setTaskTitle] = useState('');
   const [taskDesc, setTaskDesc] = useState('');
   const [taskPriority, setTaskPriority] = useState<'low' | 'medium' | 'high' | 'urgent'>('medium');
+  const [taskDueDate, setTaskDueDate] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
-  const milestones = DEMO_PROJECT_MILESTONES.filter(
-    (m) => m.clientId === (currentClient?.id || 'client_kemet')
-  );
+  useEffect(() => {
+    let ignore = false;
+    const clientId = currentClient?.id || 'client_bizchefs';
 
-  const clientTasks = tasks.filter(
-    (t) => t.clientId === (currentClient?.id || 'client_kemet')
-  );
+    fetch(`/api/tasks?clientId=${clientId}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json) => {
+        if (!ignore) {
+          if (json?.data) {
+            setTasks(json.data);
+          }
+          setLoading(false);
+        }
+      })
+      .catch(() => {
+        if (!ignore) {
+          setLoading(false);
+        }
+      });
 
-  const filteredTasks = clientTasks.filter((t) =>
+    return () => {
+      ignore = true;
+    };
+  }, [currentClient?.id]);
+
+  const filteredTasks = tasks.filter((t) =>
     taskFilter === 'all' ? true : t.status === taskFilter
   );
 
   const isOwner = currentUser.role === 'owner';
 
-  const handleToggleTaskStatus = (taskId: string) => {
+  const handleToggleTaskStatus = async (taskId: string) => {
+    setPermissionNotice(null);
     if (isOwner) {
-      alert('Read-Only Access: Client owners cannot modify sprint task deliverables. Please contact your engineering lead via Support Tickets.');
+      setPermissionNotice(
+        'Read-Only Access: Client owners cannot modify sprint deliverables directly. Please open a ticket via Support.'
+      );
+      setTimeout(() => setPermissionNotice(null), 4000);
       return;
     }
-    setTasks((prev) =>
-      prev.map((t) => {
-        if (t.id !== taskId) return t;
-        const nextStatus: 'todo' | 'in_progress' | 'completed' =
-          t.status === 'todo' ? 'in_progress' : t.status === 'in_progress' ? 'completed' : 'todo';
-        return { ...t, status: nextStatus };
-      })
-    );
+
+    const currentTask = tasks.find((t) => t.id === taskId);
+    if (!currentTask) return;
+
+    const nextStatus: 'todo' | 'in_progress' | 'completed' =
+      currentTask.status === 'todo'
+        ? 'in_progress'
+        : currentTask.status === 'in_progress'
+        ? 'completed'
+        : 'todo';
+
+    try {
+      await fetch('/api/tasks', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: taskId, status: nextStatus }),
+      });
+
+      setTasks((prev) =>
+        prev.map((t) => (t.id === taskId ? { ...t, status: nextStatus } : t))
+      );
+    } catch {
+      // Ignore
+    }
   };
 
-  const handleCreateTask = (e: React.FormEvent) => {
+  const handleCreateTask = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isOwner) return;
     if (!taskTitle.trim()) return;
 
-    const newTask: TaskItem = {
-      id: `task_${Date.now()}`,
-      clientId: currentClient?.id || 'client_kemet',
-      title: taskTitle.trim(),
-      description: taskDesc.trim(),
-      status: 'todo',
-      priority: taskPriority,
-      assigneeName: currentUser.name,
-      dueDate: new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0],
-      createdAt: new Date().toISOString(),
-    };
+    setSubmitting(true);
+    try {
+      const res = await fetch('/api/tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: taskTitle.trim(),
+          description: taskDesc.trim() || undefined,
+          priority: taskPriority,
+          clientId: currentClient?.id || 'client_bizchefs',
+          dueDate: taskDueDate || undefined,
+        }),
+      });
 
-    setTasks((prev) => [newTask, ...prev]);
-    setTaskTitle('');
-    setTaskDesc('');
-    setTaskModalOpen(false);
+      if (res.ok) {
+        const json = await res.json();
+        if (json.data) {
+          setTasks((prev) => [json.data, ...prev]);
+        }
+        setTaskModalOpen(false);
+        setTaskTitle('');
+        setTaskDesc('');
+        setTaskDueDate('');
+      }
+    } catch {
+      // Handle error
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -88,21 +140,11 @@ export default function ProjectsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs font-mono font-bold text-[#D39E36] tracking-wider uppercase">
-              DELIVERABLES & ROADMAP · {currentUser.role.toUpperCase()}
-            </span>
-            {isOwner && (
-              <span className="text-[10px] px-2 py-0.5 rounded font-mono bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 border border-neutral-200 dark:border-neutral-700">
-                CLIENT VIEW-ONLY
-              </span>
-            )}
-          </div>
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-neutral-900 dark:text-white">
-            Projects & Task Delivery
+            Engineering Sprints & Deliverables
           </h1>
           <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 mt-1">
-            Active sprints, engineering deliverables, and task progress for{' '}
+            Active technical roadmap, tasks, and deliverables managed for{' '}
             <span className="font-semibold text-neutral-900 dark:text-neutral-200">
               {currentClient?.name}
             </span>
@@ -110,289 +152,226 @@ export default function ProjectsPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          {!isOwner ? (
-            <button
-              type="button"
-              onClick={() => setTaskModalOpen(true)}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg bg-neutral-900 text-white dark:bg-white dark:text-neutral-950 hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-colors"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Add Task</span>
-            </button>
-          ) : (
-            <div className="text-xs text-neutral-500 font-medium px-3 py-1.5 rounded-lg border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900">
-              Sprint Roadmap (Client View)
-            </div>
-          )}
-        </div>
+        {!isOwner && (
+          <button
+            type="button"
+            onClick={() => setTaskModalOpen(true)}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg bg-neutral-900 text-white dark:bg-white dark:text-neutral-950 hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-colors shrink-0 shadow-xs"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Create Deliverable</span>
+          </button>
+        )}
       </div>
 
-      {/* Tabs Switcher: Tasks vs Milestones */}
-      <div className="flex items-center justify-between border-b border-neutral-200 dark:border-neutral-800 pb-2">
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setActiveTab('tasks')}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
-              activeTab === 'tasks'
-                ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-950'
-                : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800'
-            }`}
-          >
-            Sprint Tasks ({clientTasks.length})
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('milestones')}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
-              activeTab === 'milestones'
-                ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-950'
-                : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800'
-            }`}
-          >
-            Strategic Roadmap ({milestones.length})
-          </button>
+      {permissionNotice && (
+        <div className="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 flex items-center gap-2.5 text-xs text-amber-800 dark:text-amber-300">
+          <AlertTriangle className="w-4 h-4 shrink-0 text-amber-500" />
+          <span>{permissionNotice}</span>
         </div>
+      )}
 
-        {activeTab === 'tasks' && (
-          <div className="flex items-center gap-1 text-xs">
-            {(['all', 'todo', 'in_progress', 'completed'] as const).map((filter) => (
-              <button
-                key={filter}
-                type="button"
-                onClick={() => setTaskFilter(filter)}
-                className={`px-2 py-1 rounded text-[11px] font-medium capitalize transition-colors ${
-                  taskFilter === filter
-                    ? 'bg-neutral-200 dark:bg-neutral-800 text-neutral-900 dark:text-white font-semibold'
-                    : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-white'
-                }`}
+      {/* Filter Bar */}
+      <div className="flex items-center gap-2 p-3 rounded-xl bg-white dark:bg-[#13171f] border border-neutral-200 dark:border-neutral-800 text-xs">
+        <span className="text-neutral-500 text-[11px] font-semibold uppercase mr-1">Status:</span>
+        {(['all', 'todo', 'in_progress', 'completed'] as const).map((filter) => (
+          <button
+            key={filter}
+            type="button"
+            onClick={() => setTaskFilter(filter)}
+            className={`px-3 py-1.5 rounded-lg font-medium capitalize transition-colors ${
+              taskFilter === filter
+                ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-950 font-semibold'
+                : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+            }`}
+          >
+            {filter.replace('_', ' ')}
+          </button>
+        ))}
+      </div>
+
+      {/* Tasks Table */}
+      <div className="rounded-xl bg-white dark:bg-[#13171f] border border-neutral-200 dark:border-neutral-800 overflow-hidden shadow-xs">
+        {loading ? (
+          <div className="p-12 text-center text-xs text-neutral-500">
+            <Loader2 className="w-5 h-5 animate-spin text-[#D39E36] mx-auto mb-2" />
+            <span>Loading workspace deliverables...</span>
+          </div>
+        ) : filteredTasks.length === 0 ? (
+          <div className="p-12 text-center text-xs text-neutral-500 space-y-2">
+            <FolderKanban className="w-8 h-8 text-neutral-400 mx-auto" />
+            <p className="font-semibold text-neutral-800 dark:text-neutral-200 text-sm">
+              No tasks currently registered
+            </p>
+            <p className="text-[11px] text-neutral-500">
+              Deliverables are tracked in real time. Use Create Deliverable to add a task.
+            </p>
+          </div>
+        ) : (
+          <div className="divide-y divide-neutral-100 dark:divide-neutral-800">
+            {filteredTasks.map((task) => (
+              <div
+                key={task.id}
+                className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-neutral-50/50 dark:hover:bg-neutral-800/40 transition-colors"
               >
-                {filter.replace('_', ' ')}
-              </button>
+                <div className="flex items-start gap-3 flex-1 min-w-0">
+                  <button
+                    type="button"
+                    onClick={() => handleToggleTaskStatus(task.id)}
+                    className="mt-0.5 text-neutral-400 hover:text-neutral-700 dark:hover:text-white transition-colors"
+                    title={isOwner ? 'Read-only view' : 'Toggle deliverable status'}
+                  >
+                    {task.status === 'completed' ? (
+                      <CheckSquare className="w-4 h-4 text-emerald-500" />
+                    ) : (
+                      <Square className="w-4 h-4" />
+                    )}
+                  </button>
+
+                  <div className="min-w-0 flex-1">
+                    <span
+                      className={`text-xs font-semibold block ${
+                        task.status === 'completed'
+                          ? 'line-through text-neutral-400 dark:text-neutral-500'
+                          : 'text-neutral-900 dark:text-white'
+                      }`}
+                    >
+                      {task.title}
+                    </span>
+                    {task.description && (
+                      <span className="text-[11px] text-neutral-500 mt-0.5 block line-clamp-1">
+                        {task.description}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 shrink-0 text-xs">
+                  <span
+                    className={`px-2 py-0.5 rounded text-[10px] font-semibold uppercase ${
+                      task.priority === 'urgent'
+                        ? 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300'
+                        : task.priority === 'high'
+                        ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
+                        : 'bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300'
+                    }`}
+                  >
+                    {task.priority}
+                  </span>
+
+                  <span className="text-neutral-500 text-[11px]">
+                    {task.assigneeName || 'BizChefs Lead'}
+                  </span>
+
+                  <span
+                    className={`px-2 py-0.5 rounded text-[10px] font-medium capitalize ${
+                      task.status === 'completed'
+                        ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
+                        : task.status === 'in_progress'
+                        ? 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300'
+                        : 'bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300'
+                    }`}
+                  >
+                    {task.status.replace('_', ' ')}
+                  </span>
+                </div>
+              </div>
             ))}
           </div>
         )}
       </div>
 
-      {/* Tasks View */}
-      {activeTab === 'tasks' && (
-        <div className="space-y-3">
-          {filteredTasks.length === 0 ? (
-            <div className="p-12 text-center rounded-2xl bg-white dark:bg-[#13171f] border border-neutral-200 dark:border-neutral-800">
-              <CheckSquare className="w-10 h-10 text-neutral-400 mx-auto mb-2" />
-              <h3 className="text-sm font-semibold text-neutral-900 dark:text-white">
-                No tasks in this category
-              </h3>
-              <p className="text-xs text-neutral-500 mt-1">
-                Create a new sprint task using the button above.
-              </p>
-            </div>
-          ) : (
-            filteredTasks.map((t) => (
-              <div
-                key={t.id}
-                className="p-4 rounded-xl bg-white dark:bg-[#13171f] border border-neutral-200 dark:border-neutral-800 flex items-start justify-between gap-3 text-xs transition-colors hover:border-neutral-300 dark:hover:border-neutral-700"
-              >
-                <div className="flex items-start gap-3 min-w-0 flex-1">
-                  <button
-                    type="button"
-                    onClick={() => handleToggleTaskStatus(t.id)}
-                    className="mt-0.5 text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors"
-                    title={`Click to cycle status (current: ${t.status})`}
-                  >
-                    {t.status === 'completed' ? (
-                      <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                    ) : t.status === 'in_progress' ? (
-                      <Clock className="w-4 h-4 text-blue-500" />
-                    ) : (
-                      <Square className="w-4 h-4 text-neutral-400" />
-                    )}
-                  </button>
-
-                  <div className="space-y-1 min-w-0">
-                    <span
-                      className={`font-semibold text-neutral-900 dark:text-white block ${
-                        t.status === 'completed' ? 'line-through text-neutral-400 dark:text-neutral-500' : ''
-                      }`}
-                    >
-                      {t.title}
-                    </span>
-                    {t.description && (
-                      <p className="text-[11px] text-neutral-500 leading-relaxed">
-                        {t.description}
-                      </p>
-                    )}
-                    <div className="flex items-center gap-2 text-[11px] text-neutral-400 pt-1">
-                      {t.assigneeName && (
-                        <span className="flex items-center gap-1">
-                          <User className="w-3 h-3" />
-                          {t.assigneeName}
-                        </span>
-                      )}
-                      {t.dueDate && (
-                        <>
-                          <span>·</span>
-                          <span className="font-mono">Due {t.dueDate}</span>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2 shrink-0">
-                  <span
-                    className={`px-2 py-0.5 rounded text-[10px] font-mono font-semibold uppercase ${
-                      t.priority === 'urgent'
-                        ? 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300'
-                        : t.priority === 'high'
-                        ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
-                        : 'bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300'
-                    }`}
-                  >
-                    {t.priority}
-                  </span>
-
-                  <button
-                    type="button"
-                    onClick={() => handleToggleTaskStatus(t.id)}
-                    className="px-2 py-1 rounded text-[10px] font-semibold border border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 capitalize"
-                  >
-                    {t.status.replace('_', ' ')}
-                  </button>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-      )}
-
-      {/* Milestones View */}
-      {activeTab === 'milestones' && (
-        <div className="space-y-4">
-          {milestones.map((m) => (
-            <div
-              key={m.id}
-              className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-[#13171f] border border-neutral-200 dark:border-neutral-800 space-y-3"
-            >
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <div>
-                  <div className="flex items-center gap-2 text-xs text-neutral-500 mb-1">
-                    <span>{m.serviceCategory}</span>
-                    <span>·</span>
-                    <span suppressHydrationWarning className="flex items-center gap-1 font-mono text-[11px]">
-                      <Calendar className="w-3 h-3 text-neutral-400" />
-                      Due {formatDate(m.dueDate)}
-                    </span>
-                  </div>
-                  <h2 className="text-base font-bold text-neutral-900 dark:text-white">
-                    {m.title}
-                  </h2>
-                </div>
-
-                <span
-                  className={`self-start sm:self-auto px-2.5 py-0.5 rounded text-[11px] font-semibold capitalize ${
-                    m.status === 'completed'
-                      ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
-                      : m.status === 'in_progress'
-                      ? 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300'
-                      : 'bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300'
-                  }`}
-                >
-                  {m.status.replace('_', ' ')}
-                </span>
-              </div>
-
-              <p className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed">
-                {m.description}
-              </p>
-
-              <div className="pt-2">
-                <div className="flex justify-between text-xs text-neutral-500 mb-1.5 font-medium">
-                  <span>Deliverable Completion</span>
-                  <span>{m.progressPercent}%</span>
-                </div>
-                <div className="w-full bg-neutral-100 dark:bg-neutral-800 h-2 rounded-full overflow-hidden">
-                  <div
-                    className={`h-2 rounded-full ${
-                      m.status === 'completed' ? 'bg-emerald-500' : 'bg-blue-600'
-                    }`}
-                    style={{ width: `${m.progressPercent}%` }}
-                  />
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Add Task Modal */}
+      {/* Create Task Modal */}
       {taskModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className="bg-white dark:bg-[#13171f] border border-neutral-200 dark:border-neutral-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
-            <h3 className="text-base font-bold text-neutral-900 dark:text-white">
-              Add Sprint Task
-            </h3>
-            <p className="text-xs text-neutral-500">
-              Create a new engineering or design task for this workspace.
-            </p>
+          <div className="bg-white dark:bg-[#13171f] border border-neutral-200 dark:border-neutral-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-neutral-100 dark:border-neutral-800">
+              <h3 className="text-sm font-bold text-neutral-900 dark:text-white flex items-center gap-2">
+                <FolderKanban className="w-4 h-4 text-[#D39E36]" />
+                <span>Create New Deliverable</span>
+              </h3>
+              <button
+                type="button"
+                onClick={() => setTaskModalOpen(false)}
+                className="text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 text-xs"
+              >
+                ✕
+              </button>
+            </div>
 
-            <form onSubmit={handleCreateTask} className="space-y-3.5">
+            <form onSubmit={handleCreateTask} className="space-y-3 text-xs">
               <div>
-                <label className="block text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1">
-                  Task Title
+                <label className="block font-semibold text-neutral-700 dark:text-neutral-300 mb-1">
+                  Deliverable Title
                 </label>
                 <input
                   type="text"
                   required
                   value={taskTitle}
                   onChange={(e) => setTaskTitle(e.target.value)}
-                  placeholder="e.g. Verify Hostinger SSL renewal webhook"
-                  className="w-full text-xs bg-neutral-50 dark:bg-[#181d27] border border-neutral-200 dark:border-neutral-700 rounded-lg p-2.5 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-1 focus:ring-blue-600"
+                  placeholder="e.g. Hostinger Node.js daemon restart script"
+                  className="w-full bg-neutral-50 dark:bg-[#181d27] border border-neutral-200 dark:border-neutral-700 rounded-lg px-3 py-2 text-neutral-900 dark:text-neutral-100"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1">
-                  Description / Deliverable Criteria
+                <label className="block font-semibold text-neutral-700 dark:text-neutral-300 mb-1">
+                  Description
                 </label>
                 <textarea
+                  rows={3}
                   value={taskDesc}
                   onChange={(e) => setTaskDesc(e.target.value)}
-                  placeholder="Details, steps, or acceptance checks..."
-                  className="w-full text-xs bg-neutral-50 dark:bg-[#181d27] border border-neutral-200 dark:border-neutral-700 rounded-lg p-2.5 text-neutral-900 dark:text-neutral-100 h-20 resize-none"
+                  placeholder="Technical deliverable details..."
+                  className="w-full bg-neutral-50 dark:bg-[#181d27] border border-neutral-200 dark:border-neutral-700 rounded-lg px-3 py-2 text-neutral-900 dark:text-neutral-100"
                 />
               </div>
 
-              <div>
-                <label className="block text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1">
-                  Priority
-                </label>
-                <select
-                  value={taskPriority}
-                  onChange={(e) => setTaskPriority(e.target.value as any)}
-                  className="w-full text-xs bg-neutral-50 dark:bg-[#181d27] border border-neutral-200 dark:border-neutral-700 rounded-lg p-2.5 text-neutral-900 dark:text-neutral-100"
-                >
-                  <option value="low">Low</option>
-                  <option value="medium">Medium</option>
-                  <option value="high">High</option>
-                  <option value="urgent">Urgent</option>
-                </select>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-neutral-700 dark:text-neutral-300 mb-1">
+                    Priority
+                  </label>
+                  <select
+                    value={taskPriority}
+                    onChange={(e) => setTaskPriority(e.target.value as any)}
+                    className="w-full bg-neutral-50 dark:bg-[#181d27] border border-neutral-200 dark:border-neutral-700 rounded-lg px-2.5 py-2 text-neutral-900 dark:text-neutral-100"
+                  >
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                    <option value="urgent">Urgent</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-neutral-700 dark:text-neutral-300 mb-1">
+                    Target Date
+                  </label>
+                  <input
+                    type="date"
+                    value={taskDueDate}
+                    onChange={(e) => setTaskDueDate(e.target.value)}
+                    className="w-full bg-neutral-50 dark:bg-[#181d27] border border-neutral-200 dark:border-neutral-700 rounded-lg px-2.5 py-2 text-neutral-900 dark:text-neutral-100"
+                  />
+                </div>
               </div>
 
-              <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-neutral-200 dark:border-neutral-800">
+              <div className="pt-2 flex justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => setTaskModalOpen(false)}
-                  className="px-4 py-2 text-xs font-medium rounded-lg text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                  className="px-3 py-2 rounded-lg border border-neutral-200 dark:border-neutral-700 text-neutral-600 dark:text-neutral-300"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 text-xs font-semibold rounded-lg bg-neutral-900 text-white dark:bg-white dark:text-neutral-950 hover:bg-neutral-800 dark:hover:bg-neutral-200"
+                  disabled={submitting}
+                  className="px-4 py-2 rounded-lg bg-neutral-900 text-white dark:bg-white dark:text-neutral-950 font-semibold disabled:opacity-50 flex items-center gap-1.5"
                 >
-                  Create Task
+                  {submitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                  <span>Save Deliverable</span>
                 </button>
               </div>
             </form>
