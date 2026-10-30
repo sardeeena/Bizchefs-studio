@@ -11,13 +11,17 @@ export const metadata: Metadata = {
   description:
     'Welcome to BizChefs Studio — your central workspace for managing your digital business. Access your projects, domains, hosting, deployments, and connected services through one secure platform.',
   alternates: {
-    canonical: 'https://studio.bizchefs.com/',
+    canonical: 'https://studio.bizchefs.com',
+  },
+  robots: {
+    index: true,
+    follow: true,
   },
   openGraph: {
     title: 'BizChefs Studio — Your Business. One Powerful Studio.',
     description:
       'Welcome to BizChefs Studio — your central workspace for managing your digital business. Access your projects, domains, hosting, deployments, and connected services through one secure platform.',
-    url: 'https://studio.bizchefs.com/',
+    url: 'https://studio.bizchefs.com',
     siteName: 'BizChefs Studio',
     type: 'website',
     images: [
@@ -43,7 +47,7 @@ export default function LandingPage() {
     '@context': 'https://schema.org',
     '@type': 'WebApplication',
     name: 'BizChefs Studio',
-    url: 'https://studio.bizchefs.com/',
+    url: 'https://studio.bizchefs.com',
     applicationCategory: 'BusinessApplication',
     operatingSystem: 'All',
     description:

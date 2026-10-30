@@ -1,141 +1,98 @@
-# BizChefs — Comprehensive Context Dossier (llms-full.txt)
+# BizChefs Studio — Comprehensive Documentation & Context Dossier
 
-> Complete technical, commercial, organizational, and architectural reference document for BizChefs (https://bizchefs.com). Updated October 28, 2026.
-
----
-
-## 1. Executive Summary & Brand Identity
-
-- **Brand Name**: BizChefs (legal entity operating https://bizchefs.com)
-- **Role**: Full-Service Digital & Technology Partner
-- **Headquarters**: Egypt & Global Remote Delivery (Cairo / Hurghada / Alexandria / Remote Worldwide)
-- **Primary Contact**: contact@bizchefs.com
-- **Direct Telephone / WhatsApp**: +20 128 171 9903
-- **Primary Website**: https://bizchefs.com
-- **GitHub Repository**: https://github.com/diamondsdev/Bizchef
-- **Core Mission**: Partnering with business founders, growing commercial companies, tourism operators, and enterprises to engineer high-performance web platforms, distinctive brand systems, and reliable ongoing website care retainers.
+> Complete factual, operational, and organizational reference document for BizChefs Studio (https://studio.bizchefs.com).
 
 ---
 
-## 2. Service Offerings & Pricing Architecture
+## 1. Product Summary & Identity
 
-BizChefs maintains a transparent, milestone-based pricing model with zero hidden fees.
-
-### 2.1 Website Design & Engineering
-- **Starting Price**: $300 (Landing pages / focused business sites)
-- **Typical Range**: $300 – $25,000+
-- **Turnaround**: 1 to 8 weeks depending on scope
-- **Payment Structure**: 50% deposit upon kickoff, 50% upon final staging sign-off before production domain launch.
-- **Tiers**:
-  1. **Starter Business Website ($300 – $800)**: Single-page or 3-page custom layout, Next.js 15 App Router, TypeScript, sub-second Core Web Vitals, WhatsApp integration, edge CDN deployment.
-  2. **Multi-Page Commercial Platform ($1,000 – $3,500)**: Full catalog/service architecture, headless CMS or Markdown support, rate-limited lead capture pipeline, Schema.org JSON-LD, micro-animations, 100% client code ownership.
-  3. **E-Commerce & Custom Booking Portal ($4,500 – $12,000)**: Stripe / Paymob checkout flows, user authentication, reservation calendars, automated transactional emails, administrative dashboards.
-  4. **Custom Web Application / Enterprise ERP ($15,000 – $25,000+)**: Multi-tenant database partitioning (PostgreSQL / Supabase), role-based access control (RBAC), third-party ERP/CRM integrations, high-density tabular grids with sub-50ms sorting.
-
-### 2.2 Monthly Website & Digital Care Retainers
-- **Starting Price**: From $100 / month (or $83/mo billed annually - 17% savings)
-- **Commitment**: Flexible monthly recurring. No lock-in contracts; cancel with 30 days notice.
-- **Tiers**:
-  1. **Essential Care ($100/mo / $83/mo annual)**: Weekly uptime monitoring, monthly dependency & security updates, offsite cloud backups, up to 1 hour of monthly content/technical changes, 48-hour SLA response.
-  2. **Commercial Growth ($250/mo / $208/mo annual)**: 24/7 continuous uptime monitoring & alerts, bi-weekly security audits, daily database backups, up to 4 hours of monthly engineering/creative support, monthly Core Web Vitals tuning, priority 24-hour SLA.
-  3. **Dedicated Retainer ($600+/mo / $500/mo annual)**: Real-time anomaly detection, weekly staging pipeline upgrades, continuous automated failover backups, up to 10 hours of active feature development, direct WhatsApp channel to senior engineering team, guaranteed 4-hour emergency SLA.
-
-### 2.3 Graphic Design & Brand Identity
-- **Scope**: Original vector logos, visual guidelines, typography palettes, and social media template suites.
-- **Pricing**: Scoped from $500 (Brand Foundations) to $1,200 (Complete Brand Identity System) and $2,500+ (Multi-Channel Enterprise Brand Suite).
-- **Deliverables**: 100% editable vector master source files (Figma, AI, SVG, EPS, PDF), trademark-ready copyright assignment.
-
-### 2.4 Digital Strategy & Architecture Advisory
-- **Discovery Session**: Complimentary exploratory consultation ($0) with a senior engineer.
-- **Technical Blueprint Sprint**: $450 fixed-fee (100% credited toward your project build if you proceed with BizChefs).
+- **Product Name**: BizChefs Studio
+- **Canonical URL**: https://studio.bizchefs.com
+- **Parent Organization**: BizChefs (https://bizchefs.com)
+- **Product Classification**: Web-based Client Operations Portal & Digital Management Workspace
+- **Primary Support & Contact**: https://bizchefs.com/contact
+- **Primary Email**: contact@bizchefs.com
+- **Target Audience**: Business owners, digital managers, technical leads, and founders partnering with BizChefs for custom web engineering, hosting, and ongoing digital care.
 
 ---
 
-## 3. Verified Portfolio Case Studies
+## 2. Platform Purpose & Problem Solved
 
-1. **AquaWay Tours** (https://aquaway.tours)
-   - Category: Travel & Tourism
-   - Location: Hurghada, Red Sea, Egypt
-   - Stack: Next.js 15, TypeScript, Tailwind CSS, REST APIs
-   - Status: Active Production Website (Verified HTTP 200)
-   - Scope: Interactive excursion catalogue for diving, Giftun Island boat trips, and luxury yacht charters.
+Modern businesses frequently manage multiple fragmented services across separate third-party platforms:
+- Domain registrars for DNS records and renewal notices
+- Cloud hosting control panels for server status, backups, and storage
+- Source control pipelines for deployment logs and commit tracking
+- Google Analytics 4 and Google Search Console for performance oversight
+- Email and messaging threads for maintenance requests and ticketing
 
-2. **Awesome Adventure Tours** (https://awesomeadventure.tours)
-   - Category: CRM & Tourism Operations
-   - Location: Sharm El-Sheikh, Hurghada, Marsa Alam, Egypt
-   - Stack: Next.js, Node.js / Express, Tailwind CSS, CRM Workflows
-   - Status: Active Production Website (Verified HTTP 200) with previous preview at https://mahmoud-crm-eosin.vercel.app
-
-3. **Genuine Egypte** (https://genuine-egypte.vercel.app)
-   - Category: Cultural Tourism & Private Itineraries
-   - Location: Cairo & Upper Egypt
-   - Stack: Next.js, Tailwind CSS, Accessible Responsive UI
-   - Status: Active Vercel Preview (Verified HTTP 200)
-
-4. **Diamonds ERP**
-   - Category: Enterprise Resource Planning
-   - Scope: Multi-warehouse inventory, procurement ledger, role-based access control, sub-50ms data grid sorting.
-   - Status: Private Development Project
+BizChefs Studio centralizes these operational touchpoints into a unified, secure portal. Clients gain real-time visibility into their digital properties without needing direct administrative access to underlying hosting infrastructure or raw server credentials.
 
 ---
 
-## 4. Technical Stack & Engineering Standards
+## 3. Core Functional Capabilities
 
-- **Runtime & Framework**: Node.js 20+, Next.js 15 (App Router), React 19, TypeScript
-- **Styling Architecture**: Tailwind CSS v4, PostCSS, custom CSS variables for light/dark theme persistence
-- **Animation**: `motion/react` for buttery 60fps route transitions and modal dialogs
-- **Icons**: `lucide-react` (strictly no ad-hoc SVGs)
-- **Forms & Anti-Spam**: Server-side rate-limited Next.js API Routes (`/api/contact`), in-memory IP sliding window, honeypot bot trap, structured JSON response with tracking reference IDs.
-- **Security Hardening**:
-  - Content Security Policy (CSP) headers
-  - Strict-Transport-Security (HSTS), X-Frame-Options: DENY, X-Content-Type-Options: nosniff
-  - PostCSS 8.5.23+ and postcss-selector-parser 7.1.6+ (zero CVE advisories)
-  - No secret leaks: API keys server-only via `process.env.GEMINI_API_KEY`
-- **PWA Capabilities**: Service Worker, Web App Manifest (`manifest.json`), install prompt handler, offline fallback indicator.
-- **Accessibility**: WCAG 2.2 Level AA compliance, semantic HTML5, screen-reader landmarks, focus trapping on modals.
+### 3.1 Website & Infrastructure Oversight
+- Real-time operational status (Active, Maintenance, Building)
+- SSL certificate validation (TLS 1.3 / Let's Encrypt)
+- Datacenter location tracking (Cloud Infrastructure)
+- Storage utilization and uptime monitoring
+- Active Care Plan assignment and SLA tracking
+
+### 3.2 Domain & DNS Management
+- Centralized domain portfolio overview
+- Auto-renewal status and expiration date tracking
+- DNS zone records count and nameserver configuration
+- Record inspection (A, CNAME, MX, TXT records)
+
+### 3.3 Deployments & Pipeline Monitoring
+- Automated build and deployment logs
+- Git branch and commit reference tracking
+- Build duration and completion timestamps
+- Deployment status verification (Success, In-Progress, Failed)
+
+### 3.4 Connected Analytics
+- Google Analytics 4 Data API integration: 30-day active users, page views, growth metrics, and acquisition channels
+- Google Search Console integration: organic search clicks, impressions, average CTR, and average ranking positions
+- Encrypted credential handling for connected third-party integrations
+
+### 3.5 Role-Based Access Control (RBAC)
+The platform enforces a structured role-based access model:
+- **Superadmin**: Full administrative oversight across client workspaces and user management.
+- **Admin**: Operational management within assigned client workspaces.
+- **Tech**: Technical runtime access, deployment monitoring, and infrastructure logs within assigned workspaces.
+- **Owner**: Business oversight, performance metrics, and service requests isolated strictly to the client organization.
+
+### 3.6 Support & Care Plan Services
+- Ticket creation, status updates, and threaded communication
+- Direct coordination with BizChefs engineering and maintenance leads
+- Integration with ongoing monthly care plans
 
 ---
 
-## 5. Regulatory Compliance & Data Protection
+## 4. Platform Architecture & Security Overview
 
-- **Egyptian Law No. 151 of 2020**: Full adherence to the Egyptian Personal Data Protection Law regarding lawful consent, purpose limitation, subject access requests, and cross-border data transfer safeguards.
-- **European Union GDPR (Regulation EU 2016/679)**: Explicit consent before non-essential cookies, Google Consent Mode v2 implementation (`ad_storage: denied`, `analytics_storage: denied` until opt-in).
-- **First-Party Storage Inventory**:
-  - `bizchefs_cookie_consent_v1`: LocalStorage (Stores consent decision and timestamp)
-  - `bizchefs_theme`: LocalStorage (Theme preference dark/light)
-  - `pwa_prompt_dismissed_until`: LocalStorage (14-day suppression)
-  - `bizchefs_plan_config_draft`: SessionStorage (Caches user tier selection during session)
-  - `_ga`, `_ga_*`: HTTP Cookies (Google Analytics 4, only activated upon opt-in consent)
+- **Application Architecture**: Modern web application built with responsive layout components, modular navigation, and accessibility standards.
+- **Workspace Security**: Strict client workspace isolation ensuring organizations only access their authorized resources and data.
+- **Session Protection**: Authenticated client sessions with secure credential handling and role-based permissions.
+- **Integration Protection**: Encrypted token and credential handling for third-party reporting services.
+- **Search & Discovery Directives**: Indexable public landing page with canonical URL declarations, coupled with noindex directives on private workspace routes.
 
 ---
 
-## 6. Machine-Readable API & Route Directory
+## 5. Public Navigation & Verified Policies
 
-| Route | Method | Description |
-|---|---|---|
-| `/` | GET | Homepage with Hero, Work, Services, Interactive Pricing, Ventures, FAQ |
-| `/pricing` | GET | Comprehensive pricing guide, tier matrix & interactive calculator |
-| `/services` | GET | Master engineering and design services directory |
-| `/services/web-development` | GET | Next.js and custom web application specifications |
-| `/services/maintenance` | GET | Ongoing website care policy and SLA commitments |
-| `/services/graphic-design` | GET | Brand identity, logo design, and marketing collateral |
-| `/services/seo` | GET | Technical SEO, Core Web Vitals audit & schema markup |
-| `/services/crm` | GET | Bespoke CRM, lead management & workflow platforms |
-| `/services/cms` | GET | Headless CMS architecture & client publishing tools |
-| `/services/erp` | GET | Multi-tenant ERP and inventory operations platforms |
-| `/projects` | GET | Case studies with live production verification links |
-| `/about` | GET | Company background, engineering philosophy, and team |
-| `/process` | GET | 5-phase delivery lifecycle (Discover, Design, Build, QA, Launch) |
-| `/faq` | GET | Answers to technical, commercial, and warranty questions |
-| `/contact` | GET | Inquiry channels (Form, WhatsApp, Direct Email, Phone) |
-| `/terms` | GET | Commercial Terms of Use and service agreements |
-| `/privacy` | GET | Privacy Policy and Data Subject rights |
-| `/cookies` | GET | Verified technology inventory and cookie preference settings |
-| `/accessibility` | GET | Accessibility statement and WCAG 2.2 AA audit notes |
-| `/services-policy` | GET | Milestone guarantees, refund terms, and scope boundaries |
-| `/intellectual-property` | GET | 100% Client code and asset ownership terms |
-| `/api/contact` | POST | Rate-limited lead submission endpoint with validation |
-| `/sitemap.xml` | GET | XML Sitemap for search crawlers |
-| `/robots.txt` | GET | Crawler directives (Googlebot, Bingbot, GPTBot, ClaudeBot) |
-| `/llms.txt` | GET | Curated LLM standard manifest |
-| `/llms-full.txt` | GET | This full context file |
+- **Homepage**: https://studio.bizchefs.com
+- **Client Login**: https://studio.bizchefs.com/login
+- **Client Registration**: https://studio.bizchefs.com/register
+- **Password Recovery**: https://studio.bizchefs.com/forgot-password
+- **Terms of Service**: https://bizchefs.com/terms
+- **Privacy Policy**: https://bizchefs.com/privacy
+- **Services Policy**: https://bizchefs.com/services-policy
+- **Contact & Support**: https://bizchefs.com/contact
+- **Main Company Website**: https://bizchefs.com
+
+---
+
+## 6. Document Governance
+
+This dossier is published strictly for machine-readable indexing, search engine discovery, and technical reference. It contains only verified information reflecting currently supported BizChefs Studio features and public documentation.

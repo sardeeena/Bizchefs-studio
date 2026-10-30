@@ -1,40 +1,40 @@
+# BizChefs Studio Robots Directives
+# Canonical Production Host: https://studio.bizchefs.com
+
 User-agent: *
 Allow: /
-Allow: /login
-Allow: /register
-Allow: /forgot-password
-Allow: /reset-password
-Allow: /robots.txt
-Allow: /sitemap.xml
+Allow: /_next/
+Allow: /llms.txt
+Allow: /llms-full.txt
 Disallow: /api/
-Disallow: /dashboard
-Disallow: /account
-Disallow: /admin
-Disallow: /websites
-Disallow: /domains
-Disallow: /services
-Disallow: /projects
-Disallow: /support
+Disallow: /dashboard/
+Disallow: /account/
+Disallow: /admin/
+Disallow: /websites/
+Disallow: /domains/
+Disallow: /services/
+Disallow: /projects/
+Disallow: /support/
 
+# AI Assistants & LLM Crawlers
 User-agent: GPTBot
 User-agent: ChatGPT-User
 User-agent: ClaudeBot
 User-agent: PerplexityBot
 User-agent: Google-Extended
+User-agent: Applebot-Extended
 Allow: /
-Allow: /login
-Allow: /register
+Allow: /_next/
 Allow: /llms.txt
 Allow: /llms-full.txt
 Disallow: /api/
-Disallow: /dashboard
-Disallow: /account
-Disallow: /admin
-Disallow: /websites
-Disallow: /domains
-Disallow: /services
-Disallow: /projects
-Disallow: /support
+Disallow: /dashboard/
+Disallow: /account/
+Disallow: /admin/
+Disallow: /websites/
+Disallow: /domains/
+Disallow: /services/
+Disallow: /projects/
+Disallow: /support/
 
 Sitemap: https://studio.bizchefs.com/sitemap.xml
-Host: https://studio.bizchefs.com
