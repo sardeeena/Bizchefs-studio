@@ -3,7 +3,6 @@ import { LandingHeader } from '@/components/landing/LandingHeader';
 import { LandingHero } from '@/components/landing/LandingHero';
 import { LandingFeatures } from '@/components/landing/LandingFeatures';
 import { LandingHowItWorks } from '@/components/landing/LandingHowItWorks';
-import { LandingCta } from '@/components/landing/LandingCta';
 import { LandingFooter } from '@/components/landing/LandingFooter';
 
 export const metadata: Metadata = {
@@ -81,7 +80,6 @@ export default function LandingPage() {
         <LandingHero />
         <LandingFeatures />
         <LandingHowItWorks />
-        <LandingCta />
       </main>
 
       {/* Footer */}

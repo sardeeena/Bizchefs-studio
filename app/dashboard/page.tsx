@@ -24,6 +24,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
+import { CpuUsageSparkline } from '@/components/dashboard/CpuUsageSparkline';
 
 export default function DashboardPage() {
   const {
@@ -390,9 +391,15 @@ export default function DashboardPage() {
                     <div className="bg-blue-600 h-1.5 rounded-full w-1/4" />
                   </div>
                 </div>
+
+                {/* D3 CPU Usage Sparkline & Bar Chart */}
+                <CpuUsageSparkline cpuCores={clientHosting[0].cpuCores || 4} />
               </div>
             ) : (
-              <p className="text-xs text-neutral-500">Hostinger Cloud account active and synchronized.</p>
+              <div className="space-y-3">
+                <p className="text-xs text-neutral-500">Hostinger Cloud account active and synchronized.</p>
+                <CpuUsageSparkline cpuCores={4} />
+              </div>
             )}
           </div>
 
